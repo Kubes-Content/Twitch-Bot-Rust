@@ -1,0 +1,136 @@
+use crate::JSON::crawler::ReadingObjects::ReadingString::ReadingString;
+use crate::JSON::crawler::JsonObject::JsonObject;
+use crate::JSON::crawler::PropertyType::PropertyType;
+use crate::JSON::crawler::ReadingObjects::IReadingObject::{IReadingObjectBase, IReadingObject};
+use crate::Debug::fail_safely;
+use crate::JSON::crawler::JsonPropertyValue::JsonPropertyValue;
+use crate::JSON::crawler::ReadingObjects::ReadableType::ReadableType;
+
+#[derive(Clone)]
+pub struct ReadingPropertyValue {
+    reading_string:ReadingString,
+    reading_string_vector:Vec<String>,
+    reading_json_object:JsonObject,
+    reading_json_object_vector:Vec<JsonObject>,
+    closing_bracket_hit:bool,
+    pub value_type:PropertyType,
+    previous_crawler_context:ReadableType
+}
+
+impl Default for ReadingPropertyValue {
+    fn default() -> Self {
+        ReadingPropertyValue::new(PropertyType::Invalid)
+    }
+}
+
+impl IReadingObjectBase for ReadingPropertyValue {
+    fn is_finalized(&self) -> bool {
+        match self.value_type {
+            PropertyType::String => { self.reading_string.is_finalized() }
+            PropertyType::Invalid => { fail_safely(""); false }
+            PropertyType::String_List => { self.closing_bracket_hit }
+            PropertyType::JSON_Object => { self.reading_json_object.is_valid() }
+            PropertyType::JSON_Object_List => { self.closing_bracket_hit }
+            PropertyType::Empty_List => { true }
+            PropertyType::Null => { fail_safely("Fall-through match."); false }
+        }
+    }
+
+    fn get_previous_crawler_context(&self) -> ReadableType {
+        self.previous_crawler_context
+    }
+
+    fn set_previous_crawler_context(&mut self, new_type: ReadableType) {
+        self.previous_crawler_context = new_type
+    }
+}
+
+
+impl IReadingObject<JsonPropertyValue> for ReadingPropertyValue {
+    fn built_value(&mut self) -> JsonPropertyValue {
+        match self.value_type {
+            PropertyType::Invalid => { JsonPropertyValue::new_with_string(self.reading_string.built_value()) }
+            PropertyType::String => { JsonPropertyValue::new_with_string(self.reading_string.built_value()) }
+            PropertyType::String_List => { JsonPropertyValue::new_with_string_vector(self.reading_string_vector.clone()) }
+            PropertyType::JSON_Object => { JsonPropertyValue::new_with_object(self.reading_json_object.clone()) }
+            PropertyType::JSON_Object_List => { JsonPropertyValue::new_with_object_vector(self.reading_json_object_vector.clone()) }
+            PropertyType::Empty_List => { JsonPropertyValue::new_with_object(self.reading_json_object.clone()) }
+            PropertyType::Null => { JsonPropertyValue::new_with_string(self.reading_string.built_value()) }
+        }
+    }
+}
+
+impl ReadingPropertyValue {
+    pub fn new(new_value_type:PropertyType) -> ReadingPropertyValue {
+        if new_value_type == PropertyType::Invalid {
+            //fail_safely("ERROR! Invalid type.");
+        }
+
+        ReadingPropertyValue {
+            reading_string: ReadingString::new(ReadableType::None, new_value_type == PropertyType::String),
+            reading_string_vector: vec![],
+            reading_json_object: JsonObject::new(false),
+            reading_json_object_vector: vec![],
+            closing_bracket_hit: false,
+            value_type: new_value_type,
+            previous_crawler_context: ReadableType::None // should this be a param?
+        }
+    }
+
+    fn current_reading_string_vector_index (&self) -> usize {
+        self.reading_string_vector.len() - 1
+    }
+
+    pub fn add_list_element(&mut self, new_element:JsonPropertyValue) {
+        if new_element.value_type == PropertyType::String
+            && self.value_type == PropertyType::String_List {
+            self.reading_string_vector.push(new_element.get_string_value());
+            return;
+        }
+        if new_element.value_type == PropertyType::JSON_Object
+            && self.value_type == PropertyType::JSON_Object_List {
+            self.reading_json_object_vector.push(new_element.get_object_value());
+            return;
+        }
+
+        fail_safely("Trying to add an element of an invalid type.");
+    }
+
+    pub fn closing_quotation_mark_hit(&mut self) {
+        if self.value_type != PropertyType::String {
+            fail_safely("ERROR!");
+        }
+
+        self.reading_string.register_ending_quotation_mark();
+    }
+
+    pub fn add_character(&mut self, character:String) {
+        if self.value_type != PropertyType::String {
+            fail_safely("ERROR!");
+        }
+
+        self.reading_string.add_character(character);
+    }
+
+    pub fn add_string(&mut self, readable_string:ReadingString) {
+        self.reading_string_vector.push(readable_string.clone().built_value());
+    }
+
+    pub fn set_object(&mut self, new_object:JsonObject) {
+        if self.value_type != PropertyType::JSON_Object
+            || self.reading_json_object.is_valid()
+            || !new_object.is_valid() {
+            fail_safely("ERROR!");
+        }
+
+        self.reading_json_object = new_object;
+    }
+
+    pub fn register_closing_bracket(&mut self) {
+        if self.closing_bracket_hit {
+            fail_safely("Closing bracket hit twice!");
+        }
+
+        self.closing_bracket_hit = true;
+    }
+}
