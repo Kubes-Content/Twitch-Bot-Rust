@@ -10,7 +10,7 @@ use crate::user::user_properties::UserLogin;
 
 
 pub struct DefaultMessageParser<'life> {
-    user_commands:HashMap<String, &'life dyn Fn(TwitchIrcUserMessage, Vec<String>)>
+    user_commands:HashMap<String, &'life dyn Fn(TwitchIrcUserMessage, Vec<String>, &mut ResponseContext)>
 }
 
 impl<'life> IrcMessageParser for DefaultMessageParser<'life> {
@@ -69,18 +69,23 @@ impl<'life> IrcMessageParser for DefaultMessageParser<'life> {
 }
 
 impl<'life> DefaultMessageParser<'life> {
-    pub fn get_commands_map() -> HashMap<String, &'life dyn Fn(TwitchIrcUserMessage, Vec<String>)> {
-        let mut commands_map:HashMap<String, &'life dyn Fn(TwitchIrcUserMessage, Vec<String>)> = HashMap::new();
+
+    pub fn new() ->DefaultMessageParser<'life> {
+        DefaultMessageParser { user_commands: DefaultMessageParser::get_commands_map() }
+    }
+
+    //pub fn new(user_commands:HashMap<String, &'life dyn Fn(TwitchIrcUserMessage, Vec<String>)>) -> DefaultMessageParser<'life> {
+        //DefaultMessageParser { user_commands }
+    //}
+
+    pub fn get_commands_map() -> HashMap<String, &'life dyn Fn(TwitchIrcUserMessage, Vec<String>, &mut ResponseContext)> {
+        let mut commands_map:HashMap<String, &'life dyn Fn(TwitchIrcUserMessage, Vec<String>, &mut ResponseContext)> = HashMap::new();
         commands_map.insert("STRING".to_string(), &DefaultMessageParser::test );
 
         commands_map
     }
-
-    fn test(_msg:TwitchIrcUserMessage, _args:Vec<String>){}
-
-    pub fn new(user_commands:HashMap<String, &'life dyn Fn(TwitchIrcUserMessage, Vec<String>)>) -> DefaultMessageParser<'life> {
-        DefaultMessageParser { user_commands }
-    }
+    //
+    fn test(_msg:TwitchIrcUserMessage, _args:Vec<String>, _context:&mut ResponseContext){}
 
     // decipher for any message returned to our IrcChatSession
     fn decipher_response_message(&self, context:&mut ResponseContext, logger:&dyn Logger) -> Option<TwitchIrcMessageType> {
@@ -159,7 +164,7 @@ impl<'life> DefaultMessageParser<'life> {
         }
     }
 
-    fn try_execute_command(&mut self, message:TwitchIrcUserMessage, _context:&mut ResponseContext, _logger:&dyn Logger) -> bool {
+    fn try_execute_command(&mut self, message:TwitchIrcUserMessage, context:&mut ResponseContext, _logger:&dyn Logger) -> bool {
 
 
         if message.get_message_body().chars().next().unwrap() != '!' { return false; }
@@ -177,7 +182,7 @@ impl<'life> DefaultMessageParser<'life> {
         if ! self.user_commands.contains_key(command) { return false; }
 
         if let Some(command_func) = self.user_commands.get(command) {
-            command_func(message.clone(), command_args);
+            command_func(message.clone(), command_args, context);
 
             return true;
         }

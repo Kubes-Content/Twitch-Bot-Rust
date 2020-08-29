@@ -84,7 +84,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let (token, user) = init_token_and_user(&client).await;
 
 
-    let mut irc_parser = DefaultMessageParser::new(Default::default());
+    let mut irc_parser = DefaultMessageParser::new();
     let mut irc = IrcChatSession::new(user.get_login(), token, &mut irc_parser, &LOGGER, websocket::url::Url::from_str(TWITCH_IRC_URL).unwrap());
     let irc_future = irc.initialize(vec![user.get_login()]);
     irc_future.await;
