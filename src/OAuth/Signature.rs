@@ -1,4 +1,4 @@
-use crate::WebRequests::header::Header as WebRequestHeader;
+use crate::web_requests::header::Header as WebRequestHeader;
 use reqwest::header::HeaderValue;
 
 primitiveWrapper!(Signature, String, "{}");

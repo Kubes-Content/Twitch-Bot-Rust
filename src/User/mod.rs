@@ -1,3 +1,3 @@
-pub mod UserData;
-pub mod OAuthToken;
-pub mod UserProperties;
+pub mod user_data;
+pub mod oauth_token;
+pub mod user_properties;

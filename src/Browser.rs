@@ -1,15 +1,17 @@
 use url::Url;
+use std::io::Result;
+use std::process::ExitStatus;
 
 
 pub trait Browser {
-    fn launch_url(&self, url:Url);
+    fn launch_url(&self, url:Url) -> Result<ExitStatus> ;
 }
 
 pub struct DefaultBrowser { }
 
 impl Browser for DefaultBrowser {
-    fn launch_url(&self, url:Url) {
-        open::that(url.as_ref());
+    fn launch_url(&self, url:Url) -> Result<ExitStatus> {
+        open::that(url.as_ref())
     }
 }
 

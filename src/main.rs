@@ -3,15 +3,14 @@ extern crate tokio;
 
 use reqwest::Client;
 use std::io::{stdin, BufRead};
-use crate::Secrets::CLIENT_ID;
-use crate::Credentials::ClientId::ClientId;
-use futures::executor::block_on;
+use crate::secrets::CLIENT_ID;
+use crate::credentials::client_id::ClientId;
 use std::error::Error;
-use crate::User::OAuthToken::OauthToken;
+use crate::user::oauth_token::OauthToken;
 
 
 #[macro_use]
-pub mod Macros {
+pub mod macros {
     #[macro_export] macro_rules! primitiveWrapper {
         ($type_name:ident, $wrapped_type:ty, $string_format:expr) => {
             #[derive(Clone)]
@@ -44,37 +43,34 @@ pub mod Macros {
     }
 }
 
-pub mod IRC;
-pub mod Credentials;
-pub mod JSON;
-pub mod Debug;
-pub mod User;
-pub mod OAuth;
-pub mod Utilities;
-pub mod WebRequests;
+pub mod irc;
+pub mod credentials;
+pub mod json;
+pub mod debug;
+pub mod user;
+pub mod oauth;
+pub mod utilities;
+pub mod web_requests;
 
-pub mod ConsoleComponents;
-pub mod Logger;
-pub mod Browser;
+pub mod console_components;
+pub mod logger;
+pub mod browser;
 
-pub mod Secrets;
+pub mod secrets;
 
-use User::OAuthToken::OauthToken as UserOauthToken;
-use crate::User::UserData::Data as UserData;
-use crate::IRC::ChatSession::{IrcChatSession, TWITCH_IRC_URL};
-use crate::User::UserProperties::UserLogin;
-use crate::Logger::DefaultLogger;
+use user::oauth_token::OauthToken as UserOauthToken;
+use crate::user::user_data::Data as UserData;
+use crate::irc::chat_session::{IrcChatSession, TWITCH_IRC_URL};
+use crate::logger::DefaultLogger;
 use std::str::FromStr;
-use futures::Future;
-use crate::IRC::MessageParser::{IrcMessageParser, DefaultMessageParser};
-use crate::OAuth::TokenData::TokenData;
+use crate::irc::default_message_parser::DefaultMessageParser;
 
 
 static LOGGER:DefaultLogger = DefaultLogger {};
 
 
 #[tokio::main]
-async fn main() -> Result<(), Box<Error>> {
+async fn main() -> Result<(), Box<dyn Error>> {
 
     let client_result = Client::builder().build();
 
@@ -100,8 +96,8 @@ async fn main() -> Result<(), Box<Error>> {
 async fn init_token_and_user(client:&Client) -> (OauthToken, UserData) {
     println!("TEST AUTH");
 
-    let mut b = Browser::DefaultBrowser {};
-    let components = ConsoleComponents::ConsoleComponents::new(&LOGGER, &b);
+    let b = browser::DefaultBrowser {};
+    let components = console_components::ConsoleComponents::new(&LOGGER, &b);
 
 
     // get user token
@@ -109,15 +105,13 @@ async fn init_token_and_user(client:&Client) -> (OauthToken, UserData) {
 
 
     // get logged in user's info
-    let userData = User::UserData::Data::get_from_bearer_token(client, token.clone(), components).await;
+    let user_data = user::user_data::Data::get_from_bearer_token(client, token.clone(), components).await;
 
 
-    (token, userData)
+    (token, user_data)
 }
 
-async fn request_user_oauth_token(client:&Client, browser: &mut dyn Browser::Browser, client_id:&str) -> OauthToken {
-    User::OAuthToken::OauthToken::request(client, ClientId::new(client_id.to_string()), browser).await
-}
+//async fn request_user_oauth_token(client:&Client, browser: &mut dyn browser::Browser, client_id:&str) -> OauthToken { user::oauth_token::OauthToken::request(client, ClientId::new(client_id.to_string()), browser).await }
 
 pub fn get_input_from_console(heading:&str) -> String {
     println!();

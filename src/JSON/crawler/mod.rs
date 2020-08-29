@@ -1,24 +1,24 @@
-use crate::JSON::crawler::ReadingObjects::ReadableType::ReadableType;
-use crate::Debug::fail_safely;
+use crate::json::crawler::reading_objects::readable_type::ReadableType;
+use crate::debug::fail_safely;
 
 
-pub mod CharacterHandler;
-pub mod ReadingObjects;
-pub mod Scope;
-pub mod JsonPropertyKey;
-pub mod JsonPropertyValue;
-pub mod JsonObject;
-pub mod PropertyType;
+pub mod character_handler;
+pub mod reading_objects;
+pub mod scope;
+pub mod json_property_key;
+pub mod json_property_value;
+pub mod json_object;
+pub mod property_type;
 
-pub fn crawl_json(json:&str) -> JsonObject::JsonObject {
+pub fn crawl_json(json:&str) -> json_object::JsonObject {
 
-    let mut current_scope:Scope::Scope = Scope::Scope::new();
+    let mut current_scope: scope::Scope = scope::Scope::new();
     let mut progress_tracker:String = String::new();
-    let mut character_handler:CharacterHandler::CharacterHandler = CharacterHandler::CharacterHandler::new();
+    let mut character_handler: character_handler::CharacterHandler = character_handler::CharacterHandler::new();
 
 
     for character in json.chars() {
-        let mut tmp:[u8; 4] = [0; 4];
+        //let mut tmp:[u8; 4] = [0; 4];
         let char_as_string = character.to_string();
         current_scope.debug_string = format!("{0}{1}", current_scope.debug_string, char_as_string);
         current_scope.set_current_character(&char_as_string);

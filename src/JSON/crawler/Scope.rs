@@ -1,13 +1,13 @@
-use crate::Debug::fail_safely;
-use crate::JSON::crawler::ReadingObjects::IReadingObject::{IReadingObjectBase, IReadingObject};
-use crate::JSON::crawler::PropertyType::PropertyType;
-use crate::JSON::crawler::JsonPropertyKey::JsonPropertyKey;
-use crate::JSON::crawler::JsonPropertyValue::JsonPropertyValue;
-use crate::JSON::crawler::ReadingObjects::ReadableType::ReadableType;
-use crate::JSON::crawler::ReadingObjects::ReadingPropertyKey::ReadingPropertyKey;
-use crate::JSON::crawler::ReadingObjects::ReadingPropertyValue::ReadingPropertyValue;
-use crate::JSON::crawler::ReadingObjects::ReadingObject::ReadingObject;
-use crate::JSON::crawler::JsonObject::JsonObject;
+use crate::debug::fail_safely;
+use crate::json::crawler::reading_objects::traits::reading_object::{IReadingObjectBase, IReadingObject, initialize_interface};
+use crate::json::crawler::property_type::PropertyType;
+use crate::json::crawler::json_property_key::JsonPropertyKey;
+use crate::json::crawler::json_property_value::JsonPropertyValue;
+use crate::json::crawler::reading_objects::readable_type::ReadableType;
+use crate::json::crawler::reading_objects::reading_property_key::ReadingPropertyKey;
+use crate::json::crawler::reading_objects::reading_property_value::ReadingPropertyValue;
+use crate::json::crawler::reading_objects::reading_object::ReadingObject;
+use crate::json::crawler::json_object::JsonObject;
 
 
 pub struct Scope {
@@ -92,7 +92,7 @@ impl Scope {
         };
 
         let set_object_as_property = |object_as_property_value: &mut ReadingPropertyValue| {
-            *object_as_property_value = ReadingPropertyValue::new(PropertyType::JSON_Object);
+            *object_as_property_value = ReadingPropertyValue::new(PropertyType::JsonObject);
 
 
             object_as_property_value.set_object(object_to_be_property);
@@ -149,8 +149,8 @@ impl Scope {
             temp_value.unwrap()
         };
         let list_type: PropertyType = match new_value.value_type {
-            PropertyType::JSON_Object => PropertyType::JSON_Object_List,
-            PropertyType::String => PropertyType::String_List,
+            PropertyType::JsonObject => PropertyType::JsonObjectVector,
+            PropertyType::String => PropertyType::StringVector,
             _ => { fail_safely("Invalid PropertyType"); PropertyType::Invalid },
         };
 
@@ -178,15 +178,14 @@ impl<TValue> Context<TValue>
         self.current_reading_values.len() - 1
     }
 
-    // in case
-    fn try_use_current_reading_value(&mut self, func: fn(&mut TValue)) -> bool {
+    /*fn try_use_current_reading_value(&mut self, func: fn(&mut TValue)) -> bool {
         if self.current_reading_values.len() == 0 {
             return false;
         }
 
         self.use_current_reading_value(func);
         true
-    }
+    }*/
 
     pub fn use_current_reading_value<UseFunc>(&mut self, func: UseFunc)
         where UseFunc: FnOnce(&mut TValue)
@@ -204,7 +203,7 @@ impl<TValue> Context<TValue>
         TValue: IReadingObjectBase
     {
         let mut new_value: TValue = Default::default();
-        crate::JSON::crawler::ReadingObjects::IReadingObject::initialize_interface(&mut new_value, current_scope_context);
+        initialize_interface(&mut new_value, current_scope_context);
 
         self.current_reading_values.push(new_value);
 

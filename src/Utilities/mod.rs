@@ -1,1 +1,1 @@
-pub mod StringExt;
+pub mod string_ext;
