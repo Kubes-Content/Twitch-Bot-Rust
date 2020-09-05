@@ -7,16 +7,26 @@ use crate::credentials::bot_user_credentials::REDIRECT_URI;
 use crate::credentials::access_scopes::get_all_scopes;
 use crate::web_requests::header::Header as WebRequestHeader;
 use reqwest::{Client, Response};
-use crate::console_components::ConsoleComponents;
 use crate::web_requests::twitch::request_data;
 use reqwest::header::{HeaderMap, HeaderValue};
 use crate::debug::fail_safely;
 use crate::json::crawler::crawl_json;
-use crate::browser::Browser;
-use crate::web_requests::{request, is_html};
-use crate::get_input_from_console;
+use crate::web_requests::{request, is_html, is_json, post_request};
+use crate::logger::Logger;
+use std::net::TcpListener;
+use std::io::{Read, ErrorKind};
+use std::ops::Add;
+use crate::credentials::client_secret::ClientSecret;
 
-primitiveWrapper!(OauthToken, TokenData, "{}"); // may need to implement PartialEq on TokenData
+
+primitiveWrapper!(OauthToken, TokenData, "{}");
+
+impl Default for OauthToken {
+    fn default() -> Self {
+        OauthToken::new(TokenData::from_str("", "".to_string()))
+    }
+}
+
 
 impl HasOauthSignature for OauthToken {
     fn get_oauth_signature(&self) -> Signature {
@@ -28,81 +38,101 @@ impl HasOauthSignature for OauthToken {
     }
 }
 
-impl OauthToken {
-    pub async fn request(web_client:&Client, client_id:ClientId, _browser:&dyn Browser) -> OauthToken {
-        let url_implicit_flow = format!("https://id.twitch.tv/oauth2/authorize?client_id={0}&redirect_uri={1}&response_type=token&scope={2}", client_id.value, REDIRECT_URI, get_all_scopes());
 
-        println!("{}", url_implicit_flow);
+impl OauthToken {
+    pub async fn request(web_client: &Client, client_id: ClientId, client_secret:ClientSecret) -> OauthToken {
+        let url_authoritive_flow = format!("https://id.twitch.tv/oauth2/authorize?client_id={0}&redirect_uri={1}&response_type=code&scope={2}", client_id.value, REDIRECT_URI, get_all_scopes());
+
+        println!("{}", url_authoritive_flow);
 
         let headers = HeaderMap::new();
 
-        let received_response = {
-            let mut out_response:Option<Response> = None;
-            let set_response = |response:Response| { out_response = Some(response); };
-            request(web_client, url_implicit_flow.as_str(), headers, set_response).await;
+        let authorization_response = {
+            let mut out_response: Option<Response> = None;
+            let set_response = |response: Response| { out_response = Some(response); };
+            request(web_client, url_authoritive_flow.as_str(), headers.clone(), set_response).await;
             out_response.unwrap()
         };
 
-        //let mut token = String::new();
+        let authorization = {
+            let mut authorization = String::new();
+            if !is_html(&authorization_response) {
+                println!("{}", authorization_response.text().await.unwrap());
 
-        if ! is_html(&received_response) {
+                fail_safely("HTML EXPECTED");
+            } else {
+                open::that(authorization_response.url().as_str()).unwrap();
 
-            println!("{}", received_response.text().await.unwrap());
+                // listen for oauth redirect
+                let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+                for stream in listener.incoming() {
+                    let mut stream = stream.unwrap();
+                    let mut buffer = [0; 4096];
+                    stream.read(&mut buffer).unwrap();
+                    let received_request = String::from_utf8_lossy(&buffer[..]).to_string();
+                    let get_authorization_code = |string: String| {
+                        println!("Request: {}", string);
 
-            fail_safely("HTML EXPECTED");
-        } else {
+                        let mut chars = string.chars();
 
-            open::that(received_response.url().as_str()).unwrap();
+                        while let Some(character) = chars.next() {
+                            if character == '/' {
+                                break;
+                            }
+                        }
 
-            /*// listen for oauth redirect
-            let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
-            for stream in listener.incoming() {
-                let mut stream = stream.unwrap();
-                let mut buffer = [0; 4096];
-                stream.read(&mut buffer).unwrap();
-                stream.
-                let received_request = String::from_utf8_lossy(&buffer[..]).to_string();
-                let get_token = |string:String| {
-                    println!("Request: {}", string);
+                        let mut uri = String::new();
 
-                    let mut chars = string.chars();
+                        while let Some(character) = chars.next() {
+                            if character == '&' || character == ' ' {
+                                break;
+                            }
+                            uri = uri.add(character.to_string().as_str());
+                        }
 
-                    while let Some(character) = chars.next() {
-                        if character == '/' {
+                        if uri.len() == 36 && uri[0..6].to_string() == "?code=" {
+                            Ok(uri[6..].to_string())
+                        } else {
+                            Err(ErrorKind::InvalidData)
+                        }
+                    };
+
+                    match get_authorization_code(received_request) {
+                        Ok(authorization_temp) => {
+                            authorization = authorization_temp;
                             break;
                         }
+                        Err(_) => {},
                     }
-
-                    let mut uri = String::new();
-
-                    while let Some(character) = chars.next() {
-                        if character == '&' || character == ' ' {
-                            break;
-                        }
-                        uri = uri.add(character.to_string().as_str());
-                    }
-
-                    if uri.len() == 30 {
-                        Ok(uri)
-                    } else {
-                        Err(ErrorKind::InvalidData)
-                    }
-                };
-
-                let tmp = get_token(received_request);
-
-                if ! tmp.is_err() {
-                    token = tmp.unwrap();
-                    break;
                 }
-            }*/
+            }
+            authorization
+        };
 
-            // begin listening server // make sure redirect URI is localhost and port
-        }
+        let url_request_access_token = format!("https://id.twitch.tv/oauth2/token?client_id={0}&client_secret={1}&code={2}&grant_type=authorization_code&redirect_uri={3}", client_id.value, client_secret.value, authorization, REDIRECT_URI);
 
-        let token = get_input_from_console("Upon authorizing your account, please post the URL of the page you are redirected to into the console to finalize authorization.");
+        let token_response = {
+            let mut out_response = None;
+            let mut set_response = |response:Response| { out_response = Some(response) };
+            post_request(web_client, url_request_access_token.as_str() , headers.clone(), set_response).await;
+            out_response.unwrap()
+        };
 
-        OauthToken::new(TokenData::from_str(token.as_str(), client_id.value))
+        let token = {
+
+            if ! is_json(&token_response) {
+                fail_safely("EXPECTED JSON");
+            }
+
+            TokenData::from_json(crawl_json(token_response.text().await.unwrap().as_str()), client_id)
+        };
+
+
+        //let token = get_input_from_console("Upon authorizing your account, please post the URL of the page you are redirected to into the console to finalize authorization.");
+
+
+        OauthToken::new(token)
+//        OauthToken::new(TokenData::from_str(authorization.as_str(), client_id.value))
     }
 
     pub fn get_client_id(&self) -> ClientId {
@@ -117,22 +147,22 @@ impl OauthToken {
 
     pub fn get_oauth_bearer_header(&self) -> WebRequestHeader { self.get_oauth_signature().get_oauth_bearer_header() }
 
-    pub async fn validate<'life>(&mut self, client:&Client, _components:ConsoleComponents<'life>) {
-        const VALIDATION_URL:&str = "https://id.twitch.tv/oauth2/validate";
-        const AUTHORIZATION_HEADER:&str = "Authorization";
+    pub async fn validate<TLogger>(&mut self, client: &Client, logger:TLogger)
+        where TLogger: Logger {
+        const VALIDATION_URL: &str = "https://id.twitch.tv/oauth2/validate";
+        const AUTHORIZATION_HEADER: &str = "Authorization";
 
         let mut header_map = HeaderMap::new();
         header_map.append(AUTHORIZATION_HEADER, HeaderValue::from_str(format!("OAuth {}", self.get_oauth_signature().to_string()).as_str()).unwrap());
 
-        let on_string_received = |string:String| {
-
+        let on_string_received = |string: String| {
             let validation_token = ValidationToken::from_json(crawl_json(string.as_str()));
 
             self.update_oauth(validation_token);
 
-            println!("User Oauth token updated via validation token!");
+            logger.write_line("User Oauth token updated via validation token!".to_string());
         };
-        let on_html_received = |_:String| { fail_safely("Expecting JSON!") };
+        let on_html_received = |_: String| { fail_safely("Expecting JSON!") };
         request_data(client,
                      VALIDATION_URL,
                      header_map,

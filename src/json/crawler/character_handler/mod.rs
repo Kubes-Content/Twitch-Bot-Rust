@@ -38,13 +38,13 @@ impl CharacterHandler {
         }
 
 
-        CharacterHandler::register_character(&mut self.opening_curly_brace_handler, current_scope.current_context, current_scope);
+        CharacterHandler::register_character(&mut self.opening_curly_brace_handler, current_scope.get_current_context(), current_scope);
 
 
         let empty_func = | _:&mut ReadingObject | { };
-        current_scope.reading_json_objects.create_nested_reading_value(current_scope.current_context, empty_func);
+        current_scope.reading_json_objects.create_nested_reading_value(current_scope.get_current_context(), empty_func);
 
-        current_scope.current_context = ReadableType::PropertyValueObject;
+        current_scope.set_current_context(ReadableType::PropertyValueObject);
     }
 
     pub fn register_closing_curly_brace(&mut self, current_scope:&mut Scope) {
@@ -95,13 +95,14 @@ impl CharacterHandler {
 
     // if adding functionality after/before this switch, Property_key must use a GOTO statement to repeat the switch (instead of the whole function)
     pub fn register_opening_quotation_mark(&mut self, current_scope:&mut Scope) {
-        match current_scope.current_context {
+        match current_scope.get_current_context() {
             ReadableType::RootObject
             | ReadableType::PropertyValueObject => {
-                let empty_func = | _:&mut ReadingPropertyKey | { };
-                current_scope.reading_json_property_keys.create_nested_reading_value(current_scope.current_context, empty_func);
 
-                current_scope.current_context = ReadableType::PropertyKey;
+                let empty_func = | _:&mut ReadingPropertyKey | { };
+                current_scope.reading_json_property_keys.create_nested_reading_value(current_scope.get_current_context(), empty_func);
+
+                current_scope.set_current_context(ReadableType::PropertyKey);
             },
             ReadableType::PropertyKey => {
                 let func = | reading_key:&mut ReadingPropertyKey | {
@@ -113,10 +114,14 @@ impl CharacterHandler {
                     }
                 };
                 current_scope.reading_json_property_keys.use_current_reading_value(func);
+                
+                let set_type = | reading_value:&mut ReadingPropertyValue | {
+                    reading_value.value_type = PropertyType::String;
+                };
+                current_scope.reading_json_property_values.create_nested_reading_value(current_scope.get_current_context(), set_type);
 
-                current_scope.current_context = ReadableType::PropertyValueStringArray;
-
-                self.register_opening_quotation_mark(current_scope);
+                current_scope.set_current_context( ReadableType::PropertyValueString);
+                //self.register_opening_quotation_mark(current_scope);
             },
             ReadableType::PropertyValueUnknownArray => {
                 let finalize_key = |reading_key:&mut ReadingPropertyKey | {
@@ -129,28 +134,29 @@ impl CharacterHandler {
                 let init_value = |reading_value:&mut ReadingPropertyValue | {
                     reading_value.value_type = PropertyType::StringVector;
                 };
-                current_scope.reading_json_property_values.create_nested_reading_value(current_scope.current_context, init_value);
+                current_scope.reading_json_property_values.create_nested_reading_value(current_scope.get_current_context(), init_value);
 
-                current_scope.current_context = ReadableType::PropertyValueStringArray;
+                current_scope.set_current_context(ReadableType::PropertyValueStringArray);
 
                 self.register_opening_quotation_mark(current_scope);
             },
-            ReadableType::PropertyValueStringArray => {
-                current_scope.current_context = ReadableType::PropertyValueString;
+            ReadableType::PropertyValueStringArray
+            |ReadableType::PropertyValueString => {
                 let func = | reading_value:&mut ReadingPropertyValue | {
                     reading_value.value_type = PropertyType::String;
                 };
-                current_scope.reading_json_property_values.create_nested_reading_value(current_scope.current_context, func);
+                current_scope.reading_json_property_values.create_nested_reading_value(current_scope.get_current_context(), func);
+                current_scope.set_current_context(ReadableType::PropertyValueStringArray);
+                current_scope.set_current_context(ReadableType::PropertyValueString);
             },
             ReadableType::None
-            | ReadableType::PropertyValueString
             | ReadableType::PropertyValuePrimitiveAsString
             | ReadableType::PropertyValueObjectArray => { fail_safely("Opening quotation mark fell through!"); },
         }
     }
 
     pub fn register_closing_quotation_mark(&mut self, current_scope:&mut Scope) {
-        match current_scope.current_context {
+        match current_scope.get_current_context() {
             ReadableType::PropertyKey => {
                 let func = | reading_key:&mut ReadingPropertyKey | {
                     reading_key.register_ending_quotation_mark_hit();
@@ -187,7 +193,7 @@ impl CharacterHandler {
 
                 current_scope.reading_json_property_values.remove_current_value();
 
-                current_scope.current_context = ReadableType::PropertyValueStringArray;
+                current_scope.set_current_context(ReadableType::PropertyValueStringArray);
             },
             ReadableType::None
             | ReadableType::RootObject
@@ -204,7 +210,7 @@ impl CharacterHandler {
     }
 
     pub fn register_colon(&self, current_scope:&mut Scope) {
-        if current_scope.current_context != ReadableType::PropertyKey { fail_safely("RegisterColon switch fell through"); }
+        if current_scope.get_current_context() != ReadableType::PropertyKey { fail_safely("RegisterColon switch fell through"); }
 
         let colon_hit_func = |reading_key:&mut ReadingPropertyKey | {
             reading_key.register_colon_hit();
@@ -213,15 +219,15 @@ impl CharacterHandler {
     }
 
     pub fn register_opening_bracket(&self, current_scope:&mut Scope) {
-        if current_scope.current_context != ReadableType::PropertyKey { fail_safely("JSON - Opening bracket registered while not in a PropertyKey context."); }
+        if current_scope.get_current_context() != ReadableType::PropertyKey { fail_safely("JSON - Opening bracket registered while not in a PropertyKey context."); }
 
-        current_scope.current_context = ReadableType::PropertyValueUnknownArray;
+        current_scope.set_current_context(ReadableType::PropertyValueUnknownArray);
     }
 
     pub fn register_closing_bracket(&mut self, current_scope:&mut Scope) {
         self.try_finalize_primitive_as_string(current_scope);
 
-        match current_scope.current_context {
+        match current_scope.get_current_context() {
             ReadableType::None |
             ReadableType::RootObject |
             ReadableType::PropertyKey |
@@ -234,7 +240,7 @@ impl CharacterHandler {
 
                     reading_array_value.register_closing_bracket();
                 };
-                current_scope.reading_json_property_values.create_nested_reading_value(current_scope.current_context, finalize_value_func);
+                current_scope.reading_json_property_values.create_nested_reading_value(current_scope.get_current_context(), finalize_value_func);
 
                 let finalize_key_func = | reading_key:&mut ReadingPropertyKey | {
                     reading_key.set_paired_value_type(PropertyType::EmptyVector);
@@ -281,7 +287,7 @@ impl CharacterHandler {
     pub fn register_alphanumeric_character(&mut self, current_scope:&mut Scope) {
         current_scope.previous_character_escaped_via_backslash = false;
 
-        match current_scope.current_context {
+        match current_scope.get_current_context() {
             ReadableType::PropertyKey => {
                 let mut return_from_func:bool = false;
                 let current_character = current_scope.get_current_character();
@@ -309,7 +315,7 @@ impl CharacterHandler {
                 };
                 current_scope.reading_json_property_values.use_current_reading_value(value_func);
 
-                current_scope.current_context= ReadableType::PropertyValuePrimitiveAsString;
+                current_scope.set_current_context(ReadableType::PropertyValuePrimitiveAsString);
             },
             ReadableType::PropertyValueString
             | ReadableType::PropertyValuePrimitiveAsString => {
@@ -324,7 +330,7 @@ impl CharacterHandler {
             | ReadableType::PropertyValueUnknownArray
             | ReadableType::PropertyValueObject
             | ReadableType::PropertyValueStringArray
-            | ReadableType::PropertyValueObjectArray => { fail_safely("JSON - register alphanumeric character fell through!"); },
+            | ReadableType::PropertyValueObjectArray => { fail_safely(format!("JSON - register alphanumeric character fell through!\nDebugString: {}", current_scope.debug_string).as_str()); },
         }
     }
 
@@ -335,7 +341,7 @@ impl CharacterHandler {
     }
 
     pub fn try_finalize_primitive_as_string(&mut self, current_scope:&mut Scope) -> bool {
-        if current_scope.current_context != ReadableType::PropertyValuePrimitiveAsString { return false; }
+        if current_scope.get_current_context() != ReadableType::PropertyValuePrimitiveAsString { return false; }
 
         self.register_closing_quotation_mark(current_scope);
         true
@@ -343,7 +349,7 @@ impl CharacterHandler {
 
     pub fn set_context_to_last_keys_context(&self, current_scope:&mut Scope) {
         if ! current_scope.reading_json_property_keys.has_reading_value() {
-            current_scope.current_context = ReadableType::PropertyValueObject;
+            current_scope.set_current_context(ReadableType::PropertyValueObject);
             return;
         }
 
@@ -352,7 +358,7 @@ impl CharacterHandler {
             reading_key_previous_context = reading_key.previous_crawler_context;
         };
         current_scope.reading_json_property_keys.use_current_reading_value(func);
-        current_scope.current_context = reading_key_previous_context;
+        current_scope.set_current_context(reading_key_previous_context);
 
     }
 

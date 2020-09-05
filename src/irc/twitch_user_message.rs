@@ -15,4 +15,8 @@ impl TwitchIrcUserMessage {
     }
 
     pub fn get_message_body(&self) -> String { self.text.clone() }
+
+    pub fn get_target_channel(&self) -> UserLogin { self.channel.clone() }
+
+    pub fn get_speaker(&self) -> UserLogin { self.speaker.clone() }
 }

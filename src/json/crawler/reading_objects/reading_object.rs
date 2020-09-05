@@ -16,7 +16,7 @@ impl std::default::Default for ReadingObject {
     fn default() -> Self {
         ReadingObject {
             ending_curly_brace_registered: false,
-            built_value: Default::default(),
+            built_value: JsonObject::new(true), // should we enforce validity elsewhere? is this too early?
             previous_crawler_context: ReadableType::None
         }
     }

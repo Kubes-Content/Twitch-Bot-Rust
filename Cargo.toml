@@ -7,14 +7,16 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-chrono = "0.4.15"
-futures = "0.3.5"
-futures-channel = "0.3.5"
-open = "1.4.0"
-reqwest = "0.10.7"
-websocket = "0.26.2"
-url = "2.1.1"
+chrono = "*"
+crossbeam = "*"
+futures = "*"
+futures-channel = "*"
+open = "*"
+rand = "*"
+reqwest = "*"
+websocket = "*"
+url = "*"
 
 [dependencies.tokio]
-version = "0.2.22"
+version = "*"
 features = ["time", "macros", "tcp"]

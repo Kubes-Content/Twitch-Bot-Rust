@@ -36,6 +36,7 @@ impl PartialEq for TokenData {
 }
 
 impl TokenData {
+
     fn new (new_token_type:String, new_scopes:Vec<String>, new_expiration:u32, new_requested_time:DateTime<Local>, new_signature:Signature, new_client_id:ClientId) -> TokenData {
         TokenData {
             token_type: new_token_type,
@@ -47,7 +48,7 @@ impl TokenData {
         }
     }
 
-    pub fn from_json (json_object:JsonObject) -> TokenData {
+    pub fn from_json (json_object:JsonObject, client_id:ClientId) -> TokenData {
         const PROPERTY_NAME_SIGNATURE:&str = "access_token";
         const PROPERTY_NAME_REFRESH_TOKEN:&str = "refresh_token";
         const PROPERTY_NAME_EXPIRES_IN:&str = "expires_in";
@@ -58,13 +59,14 @@ impl TokenData {
         let new_signature = Signature::new(json_object.get_string_property_value(PROPERTY_NAME_SIGNATURE.to_string()));
 
         let _refresh_token = {
-            let mut out_refresh_token:Option<JsonPropertyValue> = None;
+            let mut out_refresh_token:Option<JsonPropertyValue> = None; // is this supposed to be in case a
             let get_refresh_token = |value:JsonPropertyValue | {
                 out_refresh_token = Some(value);
             };
             json_object.use_property_value(JsonPropertyKey::new(PROPERTY_NAME_REFRESH_TOKEN.to_string(), PropertyType::Invalid), get_refresh_token);
             out_refresh_token.unwrap()
         };
+
 
         let new_expiration = json_object.get_u32_property_value(PROPERTY_NAME_EXPIRES_IN.to_string());
 
@@ -79,9 +81,9 @@ impl TokenData {
 
         let new_token_type = json_object.get_string_property_value(PROPERTY_NAME_TOKEN_TYPE.to_string());
 
-        println!("WARNING - not collecting the 'requested time' or 'ClientID' when building TokenData from JSON.");
+        println!("WARNING - not collecting the 'requested time' or 'ClientID' when building TokenData from JSON. Or the refresh token");
 
-        TokenData::new(new_token_type,new_scope,new_expiration, Local::now(), new_signature, ClientId::new("".to_string()))
+        TokenData::new(new_token_type,new_scope,new_expiration, Local::now(), new_signature, client_id)
     }
 
     pub fn update(&mut self, validation_token:ValidationToken) {

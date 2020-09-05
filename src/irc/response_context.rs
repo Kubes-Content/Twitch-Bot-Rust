@@ -1,19 +1,30 @@
-use crate::user::user_properties::UserLogin;
+use crate::user::user_data::Data as UserData;
 
+/*macro_rules! user_command_type {
+    () => { &'life dyn Fn(TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &dyn Logger) };
+}
+
+macro_rules! user_commands_map {
+    () => { HashMap<String, user_command_type!() > };
+}*/
 
 pub struct ResponseContext {
-    client_data:UserLogin,
+    client_data:UserData,
     response_received:String,
-    responses_to_send:Vec<String>
+    responses_to_send:Vec<String>,
+    //user_commands:user_commands_map!()
 }
 
 impl ResponseContext {
-    pub fn new(client_data:UserLogin,
-               response_received:String) -> ResponseContext {
+    pub fn new(client_data:UserData,
+               response_received:String,
+               //user_commands:user_commands_map!()
+    ) -> ResponseContext {
         ResponseContext {
             client_data,
             response_received,
-            responses_to_send: Vec::new()
+            responses_to_send: Vec::new(),
+            //user_commands
         }
     }
 
@@ -29,5 +40,5 @@ impl ResponseContext {
         self.responses_to_send.push(reply);
     }
 
-    pub fn get_client_user(&self) -> UserLogin { self.client_data.clone() }
+    pub fn get_client_user(&self) -> UserData { self.client_data.clone() }
 }

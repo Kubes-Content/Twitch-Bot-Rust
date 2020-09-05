@@ -12,7 +12,8 @@ use crate::json::crawler::json_object::JsonObject;
 
 pub struct Scope {
     pub debug_string: String,
-    pub current_context: ReadableType,
+    previous_context: ReadableType,
+    current_context: ReadableType,
     previous_char: String,
     current_char: String,
     pub inside_parentheses: bool,
@@ -33,6 +34,7 @@ impl Scope {
     pub fn new() -> Scope {
         Scope {
             debug_string: String::new(),
+            previous_context: ReadableType::None,
             current_context: ReadableType::None,
             previous_char: String::new(),
             current_char: String::new(),
@@ -44,10 +46,24 @@ impl Scope {
         }
     }
 
+    pub fn set_current_context(&mut self, context:ReadableType) {
+        self.previous_context = self.current_context;
+        self.current_context = context;
+    }
+
+    pub fn get_current_context(&self) -> ReadableType {
+        self.current_context
+    }
+
+    pub fn get_previous_context(&self) -> ReadableType {
+        self.previous_context
+    }
+
     pub fn set_current_character(&mut self, new_character: &String) {
         self.previous_char = self.current_char.clone();
         self.current_char = new_character.clone();
     }
+
 
     pub fn get_current_character(&self) -> String {
         self.current_char.to_string()

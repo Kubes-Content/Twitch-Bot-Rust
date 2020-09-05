@@ -19,7 +19,7 @@ impl OpeningCurlyBraceHandler {
 impl CharacterContextHandler for OpeningCurlyBraceHandler {
 
     fn register_none_context(&mut self, current_scope:&mut Scope) {
-        current_scope.current_context = ReadableType::RootObject;
+        current_scope.set_current_context(ReadableType::RootObject);
     }
 
     fn register_property_key_context(&mut self, current_scope:&mut Scope) {
@@ -31,7 +31,7 @@ impl CharacterContextHandler for OpeningCurlyBraceHandler {
     }
 
     fn register_property_value_object_context(&mut self, current_scope:&mut Scope) {
-        current_scope.current_context = ReadableType::PropertyValueObjectArray;
+        current_scope.set_current_context(ReadableType::PropertyValueObjectArray);
     }
 
     fn register_property_value_object_array_context(&mut self, current_scope:&mut Scope) {
@@ -63,9 +63,9 @@ impl CharacterContextHandler for OpeningCurlyBraceHandler {
         };
         current_scope
             .reading_json_property_values
-            .create_nested_reading_value(current_scope.current_context, init_value);
+            .create_nested_reading_value(current_scope.get_current_context(), init_value);
 
-        current_scope.current_context = ReadableType::PropertyValueObjectArray;
+        current_scope.set_current_context(ReadableType::PropertyValueObjectArray);
     }
 
     fn register_root_object_context(&mut self, current_scope:&mut Scope) {

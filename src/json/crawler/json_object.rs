@@ -86,6 +86,17 @@ impl JsonObject {
         true
     }
 
+    pub fn get_string_vector_property_value(&self, key:String) -> Vec<String> {
+        let property = self.get_property_value_copy(JsonPropertyKey::new(key, PropertyType::Invalid));
+
+        // cannot distinguish object vs. string vector if empty
+        if property.value_type == PropertyType::EmptyVector {
+            Vec::new()
+        } else {
+            property.get_string_vector_value()
+        }
+    }
+
     pub fn get_non_empty_string_vector_property_value(&self, key:String) -> Vec<String> {
         let mut out_value:Vec<String> = Vec::new();
         if !self.try_get_non_empty_string_vector_property_value(key, &mut out_value) {
@@ -109,7 +120,7 @@ impl JsonObject {
 
     pub fn get_non_empty_object_array_vector_property(&self, key: JsonPropertyKey) -> Vec<JsonObject> {
         let mut out_value = Default::default();
-        if ! self.try_get_non_empty_object_array_vector_property(key, &mut out_value) { fail_safely(stringify!(format!("Property not found! Key = '{}'", key))); }
+        if ! self.try_get_non_empty_object_array_vector_property(key.clone(), &mut out_value) { fail_safely(format!("Property not found! Key = '{}'", key.clone().get_value()).as_str()); }
 
 
         out_value.clone()
@@ -118,5 +129,12 @@ impl JsonObject {
     pub fn get_object_property(&self, key: JsonPropertyKey) -> JsonObject {
         self.get_property_value_copy(key)
             .get_object_value()
+    }
+
+    pub fn use_all_key_value_pairs<UseKVPFunc>(&self, mut func:UseKVPFunc)
+        where UseKVPFunc : FnMut(JsonPropertyKey, JsonPropertyValue) {
+        for (key, value) in self.properties.clone() {
+            func(key, value);
+        }
     }
 }

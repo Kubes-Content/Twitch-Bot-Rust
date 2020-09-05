@@ -57,6 +57,18 @@ impl JsonPropertyValue {
         }
     }
 
+    pub fn new_with_empty_vector() -> JsonPropertyValue {
+        let new_value_type:PropertyType = PropertyType::EmptyVector;
+
+        JsonPropertyValue {
+            string_value : Default::default(),
+            string_array_value: Default::default(),
+            json_object_value: Default::default(),
+            json_object_array_value: Default::default(),
+            value_type : new_value_type,
+        }
+    }
+
     pub fn new_with_object(new_value:JsonObject) -> JsonPropertyValue {
         let new_value_type:PropertyType = PropertyType::JsonObject;
 

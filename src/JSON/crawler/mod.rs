@@ -34,7 +34,7 @@ pub fn crawl_json(json:&str) -> json_object::JsonObject {
                 if current_scope.inside_parentheses {
                     character_handler.register_alphanumeric_character(&mut current_scope);
                 } else {
-                    if current_scope.current_context == ReadableType::PropertyValuePrimitiveAsString {
+                    if current_scope.get_current_context() == ReadableType::PropertyValuePrimitiveAsString {
                         character_handler.register_closing_quotation_mark(&mut current_scope);
                     }
 
@@ -77,6 +77,16 @@ pub fn crawl_json(json:&str) -> json_object::JsonObject {
                     character_handler.register_alphanumeric_character(&mut current_scope);
                 } else {
                     character_handler.register_comma(&mut current_scope);
+                }
+            },
+            '\n' => {
+                if current_scope.inside_parentheses {
+                    character_handler.register_alphanumeric_character(&mut current_scope);
+                }
+            },
+            ' ' => {
+                if current_scope.inside_parentheses {
+                    character_handler.register_alphanumeric_character(&mut current_scope);
                 }
             },
             _ => {

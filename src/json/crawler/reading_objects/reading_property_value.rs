@@ -54,7 +54,7 @@ impl IReadingObject<JsonPropertyValue> for ReadingPropertyValue {
             PropertyType::StringVector => { JsonPropertyValue::new_with_string_vector(self.reading_string_vector.clone()) }
             PropertyType::JsonObject => { JsonPropertyValue::new_with_object(self.reading_json_object.clone()) }
             PropertyType::JsonObjectVector => { JsonPropertyValue::new_with_object_vector(self.reading_json_object_vector.clone()) }
-            PropertyType::EmptyVector => { JsonPropertyValue::new_with_object(self.reading_json_object.clone()) }
+            PropertyType::EmptyVector => { JsonPropertyValue::new_with_empty_vector() }
             PropertyType::Null => { JsonPropertyValue::new_with_string(self.reading_string.built_value()) }
         }
     }
@@ -69,7 +69,7 @@ impl ReadingPropertyValue {
         ReadingPropertyValue {
             reading_string: ReadingString::new(ReadableType::None, new_value_type == PropertyType::String),
             reading_string_vector: vec![],
-            reading_json_object: JsonObject::new(false),
+            reading_json_object: JsonObject::new(new_value_type == PropertyType::JsonObject),
             reading_json_object_vector: vec![],
             closing_bracket_hit: false,
             value_type: new_value_type,
@@ -116,7 +116,7 @@ impl ReadingPropertyValue {
 
     pub fn set_object(&mut self, new_object:JsonObject) {
         if self.value_type != PropertyType::JsonObject
-            || self.reading_json_object.is_valid()
+            || !self.reading_json_object.is_valid()
             || !new_object.is_valid() {
             fail_safely("ERROR!");
         }

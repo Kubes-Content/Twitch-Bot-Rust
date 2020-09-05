@@ -1,16 +1,19 @@
 pub trait Logger {
-    fn write_line(&self, output:&str);
+    fn write_line(&self, output:String);
 
     fn clear(&self);
 }
 
-pub struct DefaultLogger {
+#[derive(Copy, Clone, Default)]
+pub struct DefaultLogger;
 
-}
+unsafe impl Send for DefaultLogger {}
+
+unsafe impl Sync for DefaultLogger {}
 
 impl Logger for DefaultLogger {
 
-    fn write_line(&self, output: &str) {
+    fn write_line(&self, output: String) {
         println!("{}", output);
     }
 
