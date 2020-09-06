@@ -1,5 +1,4 @@
 use crate::json::crawler::reading_objects::readable_type::ReadableType;
-use crate::debug::fail_safely;
 
 
 pub mod character_handler;
@@ -95,7 +94,5 @@ pub fn crawl_json(json:&str) -> json_object::JsonObject {
         }
     }
 
-    fail_safely("JSON CRAWLER FELL THROUGH!!!!!!!");
-
-    Default::default()
+    panic!("JSON CRAWLER FELL THROUGH!!!!!!!");
 }

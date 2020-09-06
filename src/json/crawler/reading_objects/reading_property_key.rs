@@ -3,7 +3,6 @@ use crate::json::crawler::json_property_key::JsonPropertyKey;
 use crate::json::crawler::reading_objects::reading_string::ReadingString;
 use crate::json::crawler::property_type::PropertyType;
 use crate::json::crawler::reading_objects::readable_type::ReadableType;
-use crate::debug::fail_safely;
 
 
 pub struct ReadingPropertyKey {
@@ -49,7 +48,7 @@ impl IReadingObject<JsonPropertyKey> for ReadingPropertyKey {
 impl ReadingPropertyKey {
     pub fn register_colon_hit(&mut self) {
         if self.colon_hit {
-            fail_safely("Colon hit twice.");
+            panic!("Colon hit twice.");
         }
 
         self.colon_hit = true;
@@ -65,7 +64,7 @@ impl ReadingPropertyKey {
 
     pub fn set_paired_value_type(&mut self, new_value_type:PropertyType) {
         if self.paired_value_type != PropertyType::Invalid {
-            fail_safely("Paired value type set twice.");
+            panic!("Paired value type set twice.");
         }
 
         self.paired_value_type = new_value_type;

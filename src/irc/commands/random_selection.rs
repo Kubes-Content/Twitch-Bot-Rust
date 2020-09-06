@@ -3,10 +3,10 @@ use crate::irc::response_context::ResponseContext;
 use crate::irc::twitch_user_message::TwitchIrcUserMessage;
 use crate::irc::commands::send_message_from_client_user_format;
 use rand::{thread_rng, Rng};
-use crate::irc::traits::message_parser::IrcMessageParser;
+use crate::irc::chat_message_parser::IrcMessageParser;
 
 
-pub fn random_selection<TParser,TLogger>(parser:TParser, message:TwitchIrcUserMessage, args:Vec<String>, context:&mut ResponseContext, logger:TLogger)
+pub fn random_selection<TParser,TLogger>(parser:TParser, message:TwitchIrcUserMessage, args:Vec<String>, context:&mut ResponseContext, logger:&TLogger)
     where TParser: IrcMessageParser<TLogger>,
           TLogger: Logger {
     let reply_to_send = {

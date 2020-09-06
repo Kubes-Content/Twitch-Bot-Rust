@@ -6,8 +6,7 @@ use crate::save_data::default::Serializable;
 use crate::json::crawler::json_property_value::JsonPropertyValue;
 use std::fs::File;
 use std::io::{Read, Write};
-use crate::debug::fail_safely;
-use crate::user::user_data::Data as UserData;
+use crate::user::user_properties::{UserId};
 
 
 #[derive(Default)]
@@ -67,7 +66,7 @@ impl CustomCommandsSaveData {
         CustomCommandsSaveData { custom_commands }
     }
 
-    pub fn load_or_default(channel:UserData) -> CustomCommandsSaveData {
+    pub fn load_or_default(channel:UserId) -> CustomCommandsSaveData {
         match File::open(Self::get_filename(channel)) {
             Ok(mut file) => {
                 let mut json = String::new();
@@ -86,24 +85,24 @@ impl CustomCommandsSaveData {
         }
     }
 
-    pub fn save(self, channel:UserData) {
+    pub fn save(self, channel:UserId) {
         match File::create(Self::get_filename(channel)) {
             Ok(mut file) => {
                 match file.write(self.to_json().as_bytes()) {
                     Ok(_) => {},
                     Err(e) => {
-                        fail_safely(format!("Unable to save custom commands file. Error: {}", e).as_str());
+                        panic!("Unable to save custom commands file. Error: {}", e)
                     },
                 }
             },
             Err(e) => {
-                fail_safely(format!("Unable to save custom commands file. Error: {}", e).as_str());
+                panic!("Unable to save custom commands file. Error: {}", e)
             },
         }
     }
 
-    fn get_filename(channel:UserData) -> String {
-        format!("{}_custom_commands.kubes", channel.get_user_id().get_value())
+    fn get_filename(channel:UserId) -> String {
+        format!("{}_custom_commands.kubes", channel.get_value())
     }
 
     // does not auto-save file

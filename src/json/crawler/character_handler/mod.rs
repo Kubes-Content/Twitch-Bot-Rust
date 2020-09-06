@@ -1,6 +1,5 @@
 use crate::json::crawler::scope::Scope;
 use crate::json::crawler::reading_objects::readable_type::ReadableType;
-use crate::debug::fail_safely;
 use crate::json::crawler::reading_objects::reading_property_key::ReadingPropertyKey;
 use crate::json::crawler::property_type::PropertyType;
 use crate::json::crawler::reading_objects::traits::reading_object::{IReadingObjectBase, IReadingObject};
@@ -110,7 +109,7 @@ impl CharacterHandler {
 
                     if ! reading_key.is_finalized()
                     {
-                        fail_safely("Property key's json is not finalized when a opening quotation mark was hit.");
+                        panic!("Property key's json is not finalized when a opening quotation mark was hit.");
                     }
                 };
                 current_scope.reading_json_property_keys.use_current_reading_value(func);
@@ -127,7 +126,7 @@ impl CharacterHandler {
                 let finalize_key = |reading_key:&mut ReadingPropertyKey | {
                     reading_key.set_paired_value_type(PropertyType::StringVector);
 
-                    if ! reading_key.is_finalized() { fail_safely("JSON - Property Key is not finalized before an opening quotation mark."); }
+                    if ! reading_key.is_finalized() { panic!("JSON - Property Key is not finalized before an opening quotation mark."); }
                 };
                 current_scope.reading_json_property_keys.use_current_reading_value(finalize_key);
 
@@ -151,7 +150,7 @@ impl CharacterHandler {
             },
             ReadableType::None
             | ReadableType::PropertyValuePrimitiveAsString
-            | ReadableType::PropertyValueObjectArray => { fail_safely("Opening quotation mark fell through!"); },
+            | ReadableType::PropertyValueObjectArray => { panic!("Opening quotation mark fell through!"); },
         }
     }
 
@@ -200,7 +199,7 @@ impl CharacterHandler {
             | ReadableType::PropertyValueUnknownArray
             | ReadableType::PropertyValueObject
             | ReadableType::PropertyValueStringArray
-            | ReadableType::PropertyValueObjectArray => { fail_safely("JSON - Closing quotation mark fell through!"); },
+            | ReadableType::PropertyValueObjectArray => { panic!("JSON - Closing quotation mark fell through!"); },
 
         }
     }
@@ -210,7 +209,7 @@ impl CharacterHandler {
     }
 
     pub fn register_colon(&self, current_scope:&mut Scope) {
-        if current_scope.get_current_context() != ReadableType::PropertyKey { fail_safely("RegisterColon switch fell through"); }
+        if current_scope.get_current_context() != ReadableType::PropertyKey { panic!("RegisterColon switch fell through"); }
 
         let colon_hit_func = |reading_key:&mut ReadingPropertyKey | {
             reading_key.register_colon_hit();
@@ -219,7 +218,7 @@ impl CharacterHandler {
     }
 
     pub fn register_opening_bracket(&self, current_scope:&mut Scope) {
-        if current_scope.get_current_context() != ReadableType::PropertyKey { fail_safely("JSON - Opening bracket registered while not in a PropertyKey context."); }
+        if current_scope.get_current_context() != ReadableType::PropertyKey { panic!("JSON - Opening bracket registered while not in a PropertyKey context."); }
 
         current_scope.set_current_context(ReadableType::PropertyValueUnknownArray);
     }
@@ -233,7 +232,7 @@ impl CharacterHandler {
             ReadableType::PropertyKey |
             ReadableType::PropertyValueString |
             ReadableType::PropertyValuePrimitiveAsString |
-            ReadableType::PropertyValueObjectArray => { fail_safely("JSON - registering closing bracket fell through."); },
+            ReadableType::PropertyValueObjectArray => { panic!("JSON - registering closing bracket fell through."); },
             ReadableType::PropertyValueUnknownArray => {
                 let finalize_value_func = |reading_array_value:&mut ReadingPropertyValue | {
                     reading_array_value.value_type = PropertyType::EmptyVector;
@@ -270,7 +269,7 @@ impl CharacterHandler {
 
     pub fn register_final_closing(&self, current_scope:&mut Scope) -> JsonObject {
         if !current_scope.reading_json_property_keys.is_empty()
-            || !current_scope.reading_json_property_values.is_empty() { fail_safely("JSON - Property keys and values have not all been used before final_closing was called."); }
+            || !current_scope.reading_json_property_values.is_empty() { panic!("JSON - Property keys and values have not all been used before final_closing was called."); }
 
         let mut finalized_root_object:JsonObject = Default::default();
 
@@ -301,7 +300,7 @@ impl CharacterHandler {
                         return;
                     }
 
-                    if reading_key.is_finalized() { fail_safely("JSON - triyng to add a character to a property's value while its key is already finalized."); }
+                    if reading_key.is_finalized() { panic!("JSON - triyng to add a character to a property's value while its key is already finalized."); }
                 };
                 current_scope.reading_json_property_keys.use_current_reading_value(key_func);
                 if return_from_func { return; }
@@ -330,7 +329,7 @@ impl CharacterHandler {
             | ReadableType::PropertyValueUnknownArray
             | ReadableType::PropertyValueObject
             | ReadableType::PropertyValueStringArray
-            | ReadableType::PropertyValueObjectArray => { fail_safely(format!("JSON - register alphanumeric character fell through!\nDebugString: {}", current_scope.debug_string).as_str()); },
+            | ReadableType::PropertyValueObjectArray => { panic!("JSON - register alphanumeric character fell through!\nDebugString: {}", current_scope.debug_string); },
         }
     }
 

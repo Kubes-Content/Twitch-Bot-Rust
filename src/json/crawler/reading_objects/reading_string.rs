@@ -1,6 +1,5 @@
 use crate::json::crawler::reading_objects::traits::reading_object::{IReadingObject, IReadingObjectBase};
 use crate::json::crawler::reading_objects::readable_type::ReadableType;
-use crate::debug::fail_safely;
 
 #[derive(Clone)]
 pub struct ReadingString {
@@ -60,7 +59,7 @@ impl ReadingString {
     pub fn register_ending_quotation_mark(&mut self) {
 
         if self.ending_quotation_mark_registered {
-            fail_safely("already finalized");
+            panic!("already finalized");
         }
 
         self.ending_quotation_mark_registered = true;

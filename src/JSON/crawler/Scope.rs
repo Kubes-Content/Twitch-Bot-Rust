@@ -1,14 +1,13 @@
-use crate::debug::fail_safely;
-use crate::json::crawler::reading_objects::traits::reading_object::{IReadingObjectBase, IReadingObject, initialize_interface};
-use crate::json::crawler::property_type::PropertyType;
-use crate::json::crawler::json_property_key::JsonPropertyKey;
-use crate::json::crawler::json_property_value::JsonPropertyValue;
-use crate::json::crawler::reading_objects::readable_type::ReadableType;
-use crate::json::crawler::reading_objects::reading_property_key::ReadingPropertyKey;
-use crate::json::crawler::reading_objects::reading_property_value::ReadingPropertyValue;
-use crate::json::crawler::reading_objects::reading_object::ReadingObject;
-use crate::json::crawler::json_object::JsonObject;
-
+use crate::json::crawler::{reading_objects::traits::reading_object::{IReadingObjectBase, IReadingObject, initialize_interface},
+                           property_type::PropertyType,
+                           json_property_key::JsonPropertyKey,
+                           json_property_value::JsonPropertyValue,
+                           reading_objects::readable_type::ReadableType,
+                           reading_objects::reading_property_key::ReadingPropertyKey,
+                           reading_objects::reading_property_value::ReadingPropertyValue,
+                           reading_objects::reading_object::ReadingObject,
+                           json_object::JsonObject
+};
 
 pub struct Scope {
     pub debug_string: String,
@@ -88,7 +87,7 @@ impl Scope {
     pub fn use_current_reading_property_list<UseFunc>(&mut self, value_type: PropertyType, func: UseFunc)
     where UseFunc: FnOnce(&mut ReadingPropertyValue) {
         if !self.try_use_current_reading_property_list(value_type, func) {
-            fail_safely("ERROR!");
+            panic!("ERROR!");
         }
     }
 
@@ -167,7 +166,7 @@ impl Scope {
         let list_type: PropertyType = match new_value.value_type {
             PropertyType::JsonObject => PropertyType::JsonObjectVector,
             PropertyType::String => PropertyType::StringVector,
-            _ => { fail_safely("Invalid PropertyType"); PropertyType::Invalid },
+            _ => { panic!("Invalid PropertyType") },
         };
 
         // add to reading field-vector
@@ -207,7 +206,7 @@ impl<TValue> Context<TValue>
         where UseFunc: FnOnce(&mut TValue)
     {
         if self.current_reading_values.len() == 0 {
-            fail_safely("No existing reading value to use.");
+            panic!("No existing reading value to use.");
         }
 
         let index = self.get_current_reading_index();

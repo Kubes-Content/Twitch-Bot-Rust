@@ -3,16 +3,17 @@ use crate::json::crawler::json_object::JsonObject;
 use crate::json::crawler::json_property_key::JsonPropertyKey;
 use crate::json::crawler::property_type::PropertyType;
 use crate::user::oauth_token::OauthToken;
-use reqwest::{Client, Response};
+use reqwest::{Client};
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use crate::web_requests::{request, get_reqwest_response_text, is_html};
 use crate::json::crawler::crawl_json;
 use crate::logger::Logger;
 use crate::json::crawler::json_property_value::JsonPropertyValue;
 use std::str::FromStr;
-use crate::{get_input_from_console};
+use crate::web_requests::twitch::{request_data, TwitchRequestResponse};
+
 
 const GET_USERS_URL: &str = "https://api.twitch.tv/helix/users";
+
 
 #[derive(Clone)]
 pub struct Data {
@@ -45,7 +46,7 @@ impl Data {
         }
     }
 
-    pub fn from_json<TLogger>(json_data_object: JsonObject, _logger:TLogger) -> Data
+    pub fn from_json<TLogger>(json_data_object: JsonObject, _logger: &TLogger) -> Data
         where TLogger: Logger {
         const PROPERTY_NAME_USER_ID: &str = "id";
         const PROPERTY_NAME_LOGIN: &str = "login";
@@ -73,7 +74,7 @@ impl Data {
         //
         // try get email // otherwise blank
         let user_email_string: String = {
-            let mut out_email_property:JsonPropertyValue = Default::default();
+            let mut out_email_property: JsonPropertyValue = Default::default();
             // REPLACE WITH try_use_property
             if json_object.try_get_property_value_copy(JsonPropertyKey::new(PROPERTY_NAME_EMAIL.to_string(), PropertyType::Invalid), &mut out_email_property) {
                 out_email_property.get_string_value()
@@ -88,42 +89,23 @@ impl Data {
         Data::new(user_id, user_login, user_display_name, user_type, user_broadcaster_type, user_description, user_profile_url, user_offline_url, user_view_count, user_email)
     }
 
-    async fn get_from_url<TLogger>(client:&Client, url: &str, web_request_headers: HeaderMap, logger:TLogger) -> Data
+    async fn get_from_url<TLogger>(client: &Client, url: &str, web_request_headers: HeaderMap, logger: &TLogger) -> Data
         where TLogger: Logger {
+        let response_text =
+            match request_data(client, url, web_request_headers, logger).await {
 
-        let response = {
-            let mut out_response:Option<Response> = None;
-            let get_response = |new_response:Response| { out_response = Some(new_response); };
-            request(client, url, web_request_headers, get_response).await;
-            out_response.unwrap()
-        };
+                TwitchRequestResponse::Json { response_text } => { response_text }
 
-        let response_text = {
-            if ! is_html(&response) {
-                get_reqwest_response_text(response).await
-            } else {
-                open::that(url).unwrap();
-
-                get_input_from_console("Upon authorizing your account, please post the URL of the page you are redirected to into the console to finalize authorization.")
-            }
-        };
+                _ => { panic!("JSON expected!"); }
+            };
 
         let json_object = crawl_json(response_text.as_str());
 
         Data::from_json(json_object, logger)
-
     }
 
-    /*pub async fn request<'life>(client:&Client, components:ConsoleComponents<'life>) -> Result<Data, Error> {
-        let implicit_flow_url:String = format!("https://id.twitch.tv/oauth2/authorize?client_id={0}&redirect_uri={1}&response_type=token&scope={2}", CLIENT_ID, REDIRECT_URI, get_all_scopes());
-
-        request_user_oauth_token()
-
-    }*/
-
-    pub async fn get_from_bearer_token<TLogger>(client:&Client, bearer_token:OauthToken, logger:TLogger) -> Data
+    pub async fn get_from_bearer_token<TLogger>(client: &Client, bearer_token: OauthToken, logger: &TLogger) -> Data
         where TLogger: Logger {
-
         let mut header_map = HeaderMap::new();
         let client_header = bearer_token.get_client_id().get_header();
         let header_name = HeaderName::from_str(client_header.get_name().as_str()).unwrap();
@@ -135,7 +117,7 @@ impl Data {
         Data::get_from_url(client, GET_USERS_URL, header_map, logger).await
     }
 
-    pub async fn get_from_username<TLogger>(client:&Client, user_login:UserLogin, logger:TLogger, headers:HeaderMap) -> Data
+    pub async fn get_from_username<TLogger>(client: &Client, user_login: UserLogin, logger: &TLogger, headers: HeaderMap) -> Data
         where TLogger: Logger {
         let url = format!("{0}?login={1}", GET_USERS_URL, user_login.get_value());
 

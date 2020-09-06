@@ -1,10 +1,11 @@
+#[derive(Copy, Clone)]
 pub struct ClientSecret {
-    pub value:String,
+    pub value:&'static str,
 }
 
 impl ClientSecret {
 
-    pub fn new(new_secret:String) -> ClientSecret {
+    pub const fn new(new_secret:&'static str) -> ClientSecret {
         ClientSecret{ value : new_secret }
     }
 

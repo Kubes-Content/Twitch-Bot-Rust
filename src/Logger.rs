@@ -1,10 +1,10 @@
-pub trait Logger {
+pub trait Logger: Sync + 'static {
     fn write_line(&self, output:String);
 
     fn clear(&self);
 }
 
-#[derive(Copy, Clone, Default)]
+#[derive(Clone, Default)]
 pub struct DefaultLogger;
 
 unsafe impl Send for DefaultLogger {}

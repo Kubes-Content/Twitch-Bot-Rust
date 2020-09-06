@@ -6,10 +6,9 @@ use crate::oauth::signature::Signature;
 use crate::credentials::bot_user_credentials::REDIRECT_URI;
 use crate::credentials::access_scopes::get_all_scopes;
 use crate::web_requests::header::Header as WebRequestHeader;
-use reqwest::{Client, Response};
-use crate::web_requests::twitch::request_data;
+use reqwest::{Client};
+use crate::web_requests::twitch::{request_data, TwitchRequestResponse};
 use reqwest::header::{HeaderMap, HeaderValue};
-use crate::debug::fail_safely;
 use crate::json::crawler::crawl_json;
 use crate::web_requests::{request, is_html, is_json, post_request};
 use crate::logger::Logger;
@@ -40,26 +39,22 @@ impl HasOauthSignature for OauthToken {
 
 
 impl OauthToken {
-    pub async fn request(web_client: &Client, client_id: ClientId, client_secret:ClientSecret) -> OauthToken {
+    pub async fn request<TLogger>(web_client: &Client, client_id: ClientId, client_secret:ClientSecret, logger:&TLogger) -> OauthToken
+        where TLogger: Logger {
         let url_authoritive_flow = format!("https://id.twitch.tv/oauth2/authorize?client_id={0}&redirect_uri={1}&response_type=code&scope={2}", client_id.value, REDIRECT_URI, get_all_scopes());
 
         println!("{}", url_authoritive_flow);
 
         let headers = HeaderMap::new();
 
-        let authorization_response = {
-            let mut out_response: Option<Response> = None;
-            let set_response = |response: Response| { out_response = Some(response); };
-            request(web_client, url_authoritive_flow.as_str(), headers.clone(), set_response).await;
-            out_response.unwrap()
-        };
+        let authorization_response = request(web_client, url_authoritive_flow.as_str(), headers.clone()).await;
 
         let authorization = {
             let mut authorization = String::new();
-            if !is_html(&authorization_response) {
+            if !is_html(&authorization_response, logger) {
                 println!("{}", authorization_response.text().await.unwrap());
 
-                fail_safely("HTML EXPECTED");
+                panic!("HTML EXPECTED");
             } else {
                 open::that(authorization_response.url().as_str()).unwrap();
 
@@ -111,17 +106,12 @@ impl OauthToken {
 
         let url_request_access_token = format!("https://id.twitch.tv/oauth2/token?client_id={0}&client_secret={1}&code={2}&grant_type=authorization_code&redirect_uri={3}", client_id.value, client_secret.value, authorization, REDIRECT_URI);
 
-        let token_response = {
-            let mut out_response = None;
-            let mut set_response = |response:Response| { out_response = Some(response) };
-            post_request(web_client, url_request_access_token.as_str() , headers.clone(), set_response).await;
-            out_response.unwrap()
-        };
+        let token_response = post_request(web_client, url_request_access_token.as_str() , headers.clone()).await;
 
         let token = {
 
-            if ! is_json(&token_response) {
-                fail_safely("EXPECTED JSON");
+            if ! is_json(&token_response, logger) {
+                panic!("EXPECTED JSON");
             }
 
             TokenData::from_json(crawl_json(token_response.text().await.unwrap().as_str()), client_id)
@@ -147,7 +137,7 @@ impl OauthToken {
 
     pub fn get_oauth_bearer_header(&self) -> WebRequestHeader { self.get_oauth_signature().get_oauth_bearer_header() }
 
-    pub async fn validate<TLogger>(&mut self, client: &Client, logger:TLogger)
+    pub async fn validate<TLogger>(&mut self, client: &Client, logger:&TLogger)
         where TLogger: Logger {
         const VALIDATION_URL: &str = "https://id.twitch.tv/oauth2/validate";
         const AUTHORIZATION_HEADER: &str = "Authorization";
@@ -155,18 +145,20 @@ impl OauthToken {
         let mut header_map = HeaderMap::new();
         header_map.append(AUTHORIZATION_HEADER, HeaderValue::from_str(format!("OAuth {}", self.get_oauth_signature().to_string()).as_str()).unwrap());
 
-        let on_string_received = |string: String| {
-            let validation_token = ValidationToken::from_json(crawl_json(string.as_str()));
-
-            self.update_oauth(validation_token);
-
-            logger.write_line("User Oauth token updated via validation token!".to_string());
-        };
-        let on_html_received = |_: String| { fail_safely("Expecting JSON!") };
-        request_data(client,
+        match request_data(client,
                      VALIDATION_URL,
                      header_map,
-                     on_string_received,
-                     on_html_received).await;
+                     logger).await {
+            TwitchRequestResponse::Json { response_text } => {
+                let validation_token = ValidationToken::from_json(crawl_json(response_text.as_str()));
+
+                self.update_oauth(validation_token);
+
+                logger.write_line("User Oauth token updated via validation token!".to_string());
+            }
+            _ => {
+                panic!("Expecting JSON!");
+            },
+        };
     }
 }

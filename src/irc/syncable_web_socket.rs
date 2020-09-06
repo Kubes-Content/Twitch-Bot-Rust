@@ -1,8 +1,7 @@
 use websocket::client::sync::Client;
 use websocket::websocket_base::stream::sync::TcpStream;
-use websocket::{ClientBuilder, WebSocketError, Message, WebSocketResult, OwnedMessage};
+use websocket::{ClientBuilder, Message, WebSocketResult, OwnedMessage};
 use websocket::url::Url;
-use crate::debug::fail_safely;
 
 
 pub struct SyncableClient {
@@ -19,7 +18,7 @@ impl SyncableClient {
             Ok(client) => {
                 SyncableClient { inner_client: client }
             },
-            Err(error) => { fail_safely(format!("ERROR: could not create client to url {0}.\n{1}", url.as_str(), error).as_str()); unimplemented!() },
+            Err(error) => { panic!("ERROR: could not create client to url {0}.\n{1}", url.as_str(), error) },
         }
     }
 

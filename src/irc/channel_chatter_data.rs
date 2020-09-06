@@ -1,7 +1,7 @@
 use crate::user::user_properties::UserLogin;
 use crate::json::crawler::json_object::JsonObject;
-use crate::web_requests::{request, post_request};
-use reqwest::{Client, Response};
+use crate::web_requests::{request};
+use reqwest::{Client};
 use reqwest::header::HeaderMap;
 use crate::json::crawler::crawl_json;
 use crate::json::crawler::json_property_key::JsonPropertyKey;
@@ -46,6 +46,7 @@ impl ChatterData {
 
         let chatter_count = json_object.get_u32_property_value(CHATTER_COUNT_PROPERTY.to_string());
 
+        // shadowing
         let json_object = json_object.get_object_property(JsonPropertyKey::new(CHATTERS_PROPERTY.to_string(), PropertyType::Invalid));
 
         let broadcaster:Vec<UserLogin> = json_object.get_string_vector_property_value(BROADCASTER_PROPERTY.to_string()).into_iter().map(|s| UserLogin::new(s)).collect();
@@ -62,13 +63,9 @@ impl ChatterData {
     pub async fn from_channel(client:&Client, channel:UserLogin) -> ChatterData {
         let url = format!("https://tmi.twitch.tv/group/user/{}/chatters", channel.get_value());
 
-        let mut response = None;
-        let get_response = |r:Response | {
-            response = Some(r);
-        };
-        request(client, url.as_str(), HeaderMap::new(), get_response).await;
+        let response = request(client, url.as_str(), HeaderMap::new()).await;
 
-        ChatterData::from_json(crawl_json(response.unwrap().text().await.unwrap().as_str()))
+        ChatterData::from_json(crawl_json(response.text().await.unwrap().as_str()))
     }
 
     pub fn get_all_viewers(&self, include_broadcaster:bool, include_mods:bool) -> Vec<UserLogin> {

@@ -2,7 +2,6 @@ use crate::json::crawler::reading_objects::reading_string::ReadingString;
 use crate::json::crawler::json_object::JsonObject;
 use crate::json::crawler::property_type::PropertyType;
 use crate::json::crawler::reading_objects::traits::reading_object::{IReadingObjectBase, IReadingObject};
-use crate::debug::fail_safely;
 use crate::json::crawler::json_property_value::JsonPropertyValue;
 use crate::json::crawler::reading_objects::readable_type::ReadableType;
 
@@ -27,12 +26,12 @@ impl IReadingObjectBase for ReadingPropertyValue {
     fn is_finalized(&self) -> bool {
         match self.value_type {
             PropertyType::String => { self.reading_string.is_finalized() }
-            PropertyType::Invalid => { fail_safely(""); false }
+            PropertyType::Invalid => { panic!(""); }
             PropertyType::StringVector => { self.closing_bracket_hit }
             PropertyType::JsonObject => { self.reading_json_object.is_valid() }
             PropertyType::JsonObjectVector => { self.closing_bracket_hit }
             PropertyType::EmptyVector => { true }
-            PropertyType::Null => { fail_safely("Fall-through match."); false }
+            PropertyType::Null => { panic!("Fall-through match."); }
         }
     }
 
@@ -91,12 +90,12 @@ impl ReadingPropertyValue {
             return;
         }
 
-        fail_safely("Trying to add an element of an invalid type.");
+        panic!("Trying to add an element of an invalid type.");
     }
 
     pub fn closing_quotation_mark_hit(&mut self) {
         if self.value_type != PropertyType::String {
-            fail_safely("ERROR!");
+            panic!("ERROR!");
         }
 
         self.reading_string.register_ending_quotation_mark();
@@ -104,7 +103,7 @@ impl ReadingPropertyValue {
 
     pub fn add_character(&mut self, character:String) {
         if self.value_type != PropertyType::String {
-            fail_safely("ERROR!");
+            panic!("ERROR!");
         }
 
         self.reading_string.add_character(character);
@@ -118,7 +117,7 @@ impl ReadingPropertyValue {
         if self.value_type != PropertyType::JsonObject
             || !self.reading_json_object.is_valid()
             || !new_object.is_valid() {
-            fail_safely("ERROR!");
+            panic!("ERROR!");
         }
 
         self.reading_json_object = new_object;
@@ -126,7 +125,7 @@ impl ReadingPropertyValue {
 
     pub fn register_closing_bracket(&mut self) {
         if self.closing_bracket_hit {
-            fail_safely("Closing bracket hit twice!");
+            panic!("Closing bracket hit twice!");
         }
 
         self.closing_bracket_hit = true;

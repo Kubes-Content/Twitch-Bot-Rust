@@ -4,7 +4,6 @@ use std::collections::HashMap;
 use crate::irc::twitch_user_message::TwitchIrcUserMessage;
 use std::string::ToString;
 use crate::irc::response_context::ResponseContext;
-use crate::irc::traits::message_parser::IrcMessageParser;
 use crate::irc::twitch_message_type::TwitchIrcMessageType;
 use crate::user::user_properties::UserLogin;
 use crate::irc::commands::shoutout::shoutout;
@@ -16,28 +15,30 @@ use std::collections::hash_map::RandomState;
 use crate::irc::commands::add_custom_text_command::add_custom_text_command;
 use crate::save_data::default::custom_commands_save_data::CustomCommandsSaveData;
 use crate::irc::commands::send_message_from_client_user_format;
+use crate::irc::traits::message_parser::MessageParser;
+use crate::irc::chat_message_parser::IrcMessageParser;
 
 
 macro_rules! user_command_type {
-    () => { fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, TLogger) };
+    () => { fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger) };
 }
 
 #[derive(Clone, Default)]
 pub struct DefaultMessageParser<TLogger>
-    where TLogger: Logger + Copy + Clone {
-    user_commands: HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, TLogger)>,
-    user_commands_alternate_keywords: HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, TLogger)>
+    where TLogger: Logger + Clone {
+    user_commands: HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger)>,
+    user_commands_alternate_keywords: HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger)>
 }
 
 unsafe impl<TLogger> Send for DefaultMessageParser<TLogger>
-    where TLogger: Logger + Copy + Clone {}
+    where TLogger: Logger + Clone {}
 
 unsafe impl<TLogger> Sync for DefaultMessageParser<TLogger>
-    where TLogger: Logger + Copy + Clone {}
+    where TLogger: Logger + Clone {}
 
-impl<TLogger> IrcMessageParser<TLogger> for DefaultMessageParser<TLogger>
-    where TLogger: Logger + Copy + Clone {
-    fn process_response(&self, context:&mut ResponseContext, logger:TLogger) -> bool {
+impl<TLogger> MessageParser<TLogger> for DefaultMessageParser<TLogger>
+    where TLogger: Logger + Clone {
+    fn process_response(&self, context:&mut ResponseContext, logger:&TLogger) -> bool {
 
         let response_received = context.get_initial_response().clone();
 
@@ -65,7 +66,7 @@ impl<TLogger> IrcMessageParser<TLogger> for DefaultMessageParser<TLogger>
             context.add_response_to_reply_with(String::from("PONG :tmi.twitch.tv"));
         } else {
 
-            if let Some(message) = self.decipher_response_message(context, &logger) {
+            if let Some(message) = self.decipher_response_message(context, logger) {
                 match message {
                     TwitchIrcMessageType::Client => {
                         //println!("Client message...");
@@ -89,17 +90,22 @@ impl<TLogger> IrcMessageParser<TLogger> for DefaultMessageParser<TLogger>
         true
     }
 
-    fn get_user_commands(&self) -> HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, TLogger)> {
+}
+
+impl<TLogger> IrcMessageParser<TLogger> for DefaultMessageParser<TLogger>
+    where TLogger: Logger + Clone {
+
+    fn get_user_commands(&self) -> HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger)> {
         self.user_commands.clone()
     }
 
-    fn get_user_commands_including_alternates(&self) -> (HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, TLogger), RandomState>, HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, TLogger), RandomState>) {
+    fn get_user_commands_including_alternates(&self) -> (HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger), RandomState>, HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger), RandomState>) {
         (self.user_commands.clone(), self.user_commands_alternate_keywords.clone())
     }
 }
 
 impl<TLogger> DefaultMessageParser<TLogger>
-    where TLogger: Logger + Copy + Clone {
+    where TLogger: Logger + Clone {
 
     pub fn new() ->DefaultMessageParser<TLogger> {
         let mut new = DefaultMessageParser { user_commands: Default::default(), user_commands_alternate_keywords: Default::default() };
@@ -126,7 +132,7 @@ impl<TLogger> DefaultMessageParser<TLogger>
     }
 
     // decipher for any message returned to our IrcChatSession
-    fn decipher_response_message(&self, context:&mut ResponseContext, logger:&dyn Logger) -> Option<TwitchIrcMessageType> {
+    fn decipher_response_message(&self, context:&mut ResponseContext, logger:&TLogger) -> Option<TwitchIrcMessageType>{
 
         if ! context.get_initial_response().begins_with(":") { return None; }
 
@@ -223,14 +229,14 @@ impl<TLogger> DefaultMessageParser<TLogger>
         }
     }
 
-    fn try_execute_command(&self, message:TwitchIrcUserMessage, context:&mut ResponseContext, logger:TLogger) -> bool {
+    fn try_execute_command(&self, message:TwitchIrcUserMessage, context:&mut ResponseContext, logger:&TLogger) -> bool {
 
         let channel_id = {
             if message.get_target_channel() != context.get_client_user().get_login() {
                 logger.write_line("TRYING TO EXECUTE COMMAND IN SOMEONE ELSE'S CHANNEL.".to_string());
                 return false;
             }
-            context.get_client_user()
+            context.get_client_user().get_user_id()
         };
 
         if message.get_message_body().chars().next().unwrap() != '!' || message.get_message_body().len() == 1 { return false; }
@@ -253,7 +259,7 @@ impl<TLogger> DefaultMessageParser<TLogger>
 
         // try to trigger command
         if let Some(command_func) = self.user_commands.clone().get(command) {
-            command_func(self.clone(), message.clone(), command_args, context, logger);
+            command_func(DefaultMessageParser::clone(&self), message.clone(), command_args, context, logger);
 
             println!("{0} triggered !{1}.", message.get_speaker().get_value(), command);
 

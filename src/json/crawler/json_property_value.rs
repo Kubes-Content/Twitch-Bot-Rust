@@ -1,4 +1,3 @@
-use crate::debug::fail_safely;
 use crate::json::crawler::json_object::JsonObject;
 use crate::json::crawler::property_type::PropertyType;
 
@@ -98,7 +97,7 @@ impl JsonPropertyValue {
     pub fn get_string_value(&self) -> String {
         if self.value_type != PropertyType::String
             && self.value_type != PropertyType::Null {
-            fail_safely("Could not get string.");
+            panic!("Could not get string.");
         }
 
         println!("WARNING: JSON is allowing null to be returned as an empty string. Find a way to differentiate null and empty strings before this point.");
@@ -108,7 +107,7 @@ impl JsonPropertyValue {
 
     pub fn get_object_value(&self) -> JsonObject {
         if self.value_type != PropertyType::JsonObject {
-            fail_safely("Could not get JSON object.");
+            panic!("Could not get JSON object.");
         }
 
         self.json_object_value.clone()
@@ -116,7 +115,7 @@ impl JsonPropertyValue {
 
     pub fn get_object_vector_value(&self) -> Vec<JsonObject> {
         if self.value_type != PropertyType::JsonObjectVector {
-            fail_safely("Could not get vector of JSON objects.");
+            panic!("Could not get vector of JSON objects.");
         }
 
         self.json_object_array_value.clone()
@@ -124,7 +123,7 @@ impl JsonPropertyValue {
 
     pub fn get_string_vector_value(&self) -> Vec<String> {
         if self.value_type != PropertyType::StringVector {
-            fail_safely("Could not get vector of strings.");
+            panic!("Could not get vector of strings.");
         }
 
         self.string_array_value.clone()

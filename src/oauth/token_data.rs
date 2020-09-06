@@ -1,7 +1,6 @@
 use crate::oauth::signature::Signature;
 use crate::credentials::client_id::ClientId;
 use crate::oauth::validation_token::ValidationToken;
-use crate::debug::fail_safely;
 use crate::json::crawler::json_object::JsonObject;
 use crate::json::crawler::json_property_value::JsonPropertyValue;
 use crate::json::crawler::json_property_key::JsonPropertyKey;
@@ -100,7 +99,7 @@ impl TokenData {
 
     pub fn get_signature(&self) -> Signature {
         if self.signature.to_string() == "" {
-            fail_safely("INVALID OAUTH TOKEN SIGNATURE!");
+            panic!("INVALID OAUTH TOKEN SIGNATURE!");
         }
 
         self.signature.clone()
@@ -112,68 +111,8 @@ impl TokenData {
 
     pub fn from_str(token:&str, client_id:String) -> TokenData {
 
-        /*let extract_signature_func = || -> Signature {
-
-            const REDIRECT_PREFIX:&str = "https://twitchapps.com/tokengen/"; // duplicate const?
-
-
-            let mut access_token:String = String::new();
-
-            let prefix_chars = REDIRECT_PREFIX.as_chars();
-            let url_chars = url.as_chars();
-
-            // check url length
-            if url_chars.len() <= prefix_chars.len() { fail_safely(stringify!(format!("ERROR url '{0}' is invalid for prefix '{1}'", url, REDIRECT_PREFIX))) }
-            // check prefix
-            if url_chars[0..prefix_chars.len()] != prefix_chars[0..prefix_chars.len()] { fail_safely(stringify!(format!("ERROR url {0} does not contain the correct prefix {1}", url, REDIRECT_PREFIX))); }
-
-            let mut url_suffix_index_enumerator = Range { start: prefix_chars.len(), end: url_chars.len() };
-
-            /* first character */ {
-                let first_char_index = url_suffix_index_enumerator.next();
-                if first_char_index == None { fail_safely("(Iterator error) First character doesnt exist?") }
-
-                let first_char_in_prefix = url_chars[url_suffix_index_enumerator.next().unwrap()];
-                if first_char_in_prefix != '#' { fail_safely("First character in URL suffix is not a pound sign!"); }
-
-
-            }
-
-            macro_rules! until_value_hit {
-                ($target_value:expr, $current:ident, $do_stuff:expr) => {
-                    loop {
-                let current_char_index = url_suffix_index_enumerator.next();
-                if current_char_index == None { break; }
-
-
-                let $current = url_chars[current_char_index.unwrap()];
-                if $current == $target_value {
-                    break;
-                }
-                $do_stuff
-            }
-                };
-            }
-
-            // step over key name // you could verify the key name here
-            until_value_hit!('=', curr, {});
-
-
-            let mut char_buffer:[u8; 0] = [4; 0];
-
-            // build value
-            until_value_hit!('&', current, access_token = access_token + current.encode_utf8(&mut char_buffer));
-
-            let c:char = 'o';
-
-
-
-
-            Signature::new(access_token)
-        };*/
-
         if token.len() != 30 {
-            fail_safely("INVALID TOKEN!");
+            panic!("INVALID TOKEN!");
         }
 
 

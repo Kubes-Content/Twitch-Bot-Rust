@@ -4,92 +4,85 @@ extern crate reqwest;
 pub mod header;
 pub mod twitch;
 
-use crate::debug::fail_safely;
-use self::reqwest::header::HeaderMap;
-use self::reqwest::{Response, Error};
-use std::ops::{Deref, DerefMut};
-use futures::Future;
+use self::reqwest::header::{HeaderMap};
+use self::reqwest::{Response, RequestBuilder, Client};
+use crate::logger::Logger;
 
 
-pub async fn post_request<Callback>(client:&reqwest::Client, url_string:&str, headers:HeaderMap, on_response_received_callback:Callback)
-   where Callback: FnOnce(Response) {
-   let request_builder = client.post(url_string);
-
-   let request_result = request_builder.headers(headers.clone()).build();
-   if request_result.is_err() { fail_safely("WEB REQUEST FAILED!"); }
-
-
-   let request = request_result.unwrap();
-
-   let response_result = client.execute(request).await;
-   if response_result.is_err() { println!("WEB RESPONSE NOT RECEIVED!"); }
-
-   on_response_received_callback(response_result.unwrap());
+pub async fn post_request(client:&reqwest::Client, url_string:&str, headers:HeaderMap) -> Response {
+   submit_request(client, client.post(url_string), headers).await
 }
 
-pub async fn request<Callback>(client:&reqwest::Client, url_string:&str, headers:HeaderMap, on_response_received_callback:Callback)
-   where Callback: FnOnce(Response)
-{
-   let request_builder = client.get(url_string);
+pub async fn request(client:&reqwest::Client, url_string:&str, headers:HeaderMap) -> Response {
+   submit_request(client, client.get(url_string), headers).await
+}
 
+async fn submit_request(client:&Client, request_builder:RequestBuilder, headers:HeaderMap) -> Response {
    let request_result = request_builder.headers(headers).build();
-   if request_result.is_err() { fail_safely("WEB REQUEST FAILED!"); }
 
-
-   let request = request_result.unwrap();
-
-   let response_result = client.execute(request).await;
-
-   match response_result {
-      Ok(response) => {
-         on_response_received_callback(response);
+   match request_result {
+      Ok(request) => {
+         match client.execute(request).await {
+            Ok(response) => {
+               response
+            },
+            Err(e) => {
+               panic!("WEB RESPONSE NOT RECEIVED! Error: {}", e)
+            }
+         }
       },
-      Err(e) => {
-         fail_safely(format!("WEB RESPONSE NOT RECEIVED! Error: {}", e).as_str());
+      Err(_) => {
+         panic!("WEB REQUEST FAILED!")
       }
    }
-
 }
 
-pub async fn get_reqwest_response_text(response:Response) -> String {
-   let response_text_result = response.text().await;
-   if response_text_result.is_err() {
-      fail_safely(format!("Received error from web response: {}", (response_text_result.unwrap_err().to_string())).as_str());
-      String::new()
-   } else {
-      response_text_result.unwrap()
-   }
+pub fn is_html<TLogger> (target:&Response, logger:&TLogger) -> bool
+   where TLogger : Logger {
+   content_type_is_x("text/html", target, logger)
 }
 
-pub fn is_html (target:&Response) -> bool {
+pub fn is_json<TLogger> (target:&Response, logger:&TLogger) -> bool
+   where TLogger : Logger {
+   content_type_is_x("application/json", target, logger)
+}
+
+pub fn is_text<TLogger> (target:&Response, logger:&TLogger) -> bool
+   where TLogger : Logger {
+   content_type_is_x("text/plain", target, logger)
+}
+
+fn content_type_is_x<TLogger> (target_type:&str, target:&Response, logger:&TLogger) -> bool
+   where TLogger: Logger {
    let headers = target.headers().clone();
-   let x = headers.get("content-type");
-   if x == None {
-      println!("Couldnt get content-type from web response")
-   }else {
-      println!("{}", x.unwrap().to_str().unwrap())
-   }
-   (x.unwrap().to_str().unwrap() == "text/html") == true
-}
+   let content_type_header_option = headers.get("content-type");
 
-pub fn is_json (target:&Response) -> bool {
-   let headers = target.headers().clone();
-   let x = headers.get("content-type");
-   if x == None {
-      println!("Couldnt get content-type from web response")
-   }else {
-      println!("{}", x.unwrap().to_str().unwrap())
-   }
-   (x.unwrap().to_str().unwrap() == "application/json") == true
-}
+   match content_type_header_option {
 
-pub fn is_text (target:&Response) -> bool {
-   let headers = target.headers().clone();
-   let x = headers.get("content-type");
-   if x == None {
-      println!("Couldnt get content-type from web response")
-   }else {
-      println!("{}", x.unwrap().to_str().unwrap())
+      None => {
+
+         logger.write_line("Couldnt get content-type from web response".to_string());
+         false
+      },
+      Some(content_type_header) => {
+
+         match content_type_header.to_str() {
+
+            Ok(content_type) => {
+
+               let mut content_type = content_type.to_string();
+               if content_type.len() != target_type.len() { // remove excess text (not sure why it will sometimes give everything after the retrieved header)
+                  content_type = content_type[0..target_type.len()].to_string();
+               }
+
+               content_type == target_type.to_string()
+            },
+            Err(e) => {
+
+               logger.write_line(format!("WARNING: Could not convert header value to string. Error: {}", e));
+               false
+            },
+         }
+      },
    }
-   (x.unwrap().to_str().unwrap() == "text/plain") == true
 }

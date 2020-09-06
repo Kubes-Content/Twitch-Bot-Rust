@@ -1,6 +1,3 @@
-use crate::debug::fail_safely;
-
-
 primitiveWrapper!(UserId, u32, "(User ID: {})");
 
 primitiveWrapper!(UserLogin, String, "(User Login: {})");
@@ -33,7 +30,7 @@ impl UserType {
             "admin" => { UserType::new(UserTypeEnum::Admin) }
             "global_mod" => { UserType::new(UserTypeEnum::GlobalMod) }
             "staff" => { UserType::new(UserTypeEnum::Staff) }
-            _ => { fail_safely(stringify!(format!("INCORRECT ENUM NAME '{}'", string_value))); UserType::new(UserTypeEnum::Basic) }
+            _ => { panic!("INCORRECT ENUM NAME '{}'", string_value) }
         }
     }
 }
@@ -62,7 +59,7 @@ impl UserBroadcasterType {
             "" => { UserBroadcasterType::new(UserBroadcasterTypeEnum::Basic) }
             "affiliate" => { UserBroadcasterType::new(UserBroadcasterTypeEnum::Affiliate) }
             "partner" => { UserBroadcasterType::new(UserBroadcasterTypeEnum::Partner) }
-            _ => { fail_safely(stringify!(format!("INCORRECT ENUM VALUE RECEIVED value='{}'",string_value))); UserBroadcasterType::new(UserBroadcasterTypeEnum::Basic) }
+            _ => { panic!("INCORRECT ENUM VALUE RECEIVED value='{}'",string_value) }
 
         }
     }

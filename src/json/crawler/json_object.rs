@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use crate::json::crawler::json_property_key::JsonPropertyKey;
 use crate::json::crawler::json_property_value::JsonPropertyValue;
-use crate::debug::fail_safely;
 use std::str::FromStr;
 use crate::json::crawler::property_type::PropertyType;
 
@@ -34,7 +33,7 @@ impl JsonObject {
 
     pub fn add_property(&mut self, key: JsonPropertyKey, value: JsonPropertyValue) {
         if key.paired_property_type == PropertyType::Invalid {
-            fail_safely("Invalid property key.");
+            panic!("Invalid property key.");
         }
 
         self.properties.insert(key, value);
@@ -52,7 +51,7 @@ impl JsonObject {
     pub fn get_property_value_copy(&self, key: JsonPropertyKey) -> JsonPropertyValue {
         let mut return_value: JsonPropertyValue = JsonPropertyValue::new_with_string(String::from("ERROR"));
         if !self.try_get_property_value_copy(key, &mut return_value) {
-            fail_safely("failed to get JSON-Object's property's value");
+            panic!("failed to get JSON-Object's property's value");
         }
 
         return_value
@@ -100,7 +99,7 @@ impl JsonObject {
     pub fn get_non_empty_string_vector_property_value(&self, key:String) -> Vec<String> {
         let mut out_value:Vec<String> = Vec::new();
         if !self.try_get_non_empty_string_vector_property_value(key, &mut out_value) {
-            fail_safely("AHHHH!!! REAL MONSTERS!");
+            panic!("AHHHH!!! REAL MONSTERS!");
         }
 
         out_value
@@ -120,7 +119,7 @@ impl JsonObject {
 
     pub fn get_non_empty_object_array_vector_property(&self, key: JsonPropertyKey) -> Vec<JsonObject> {
         let mut out_value = Default::default();
-        if ! self.try_get_non_empty_object_array_vector_property(key.clone(), &mut out_value) { fail_safely(format!("Property not found! Key = '{}'", key.clone().get_value()).as_str()); }
+        if ! self.try_get_non_empty_object_array_vector_property(key.clone(), &mut out_value) { panic!("Property not found! Key = '{}'", key.clone().get_value()); }
 
 
         out_value.clone()

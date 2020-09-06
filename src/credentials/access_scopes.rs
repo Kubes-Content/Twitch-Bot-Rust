@@ -10,6 +10,7 @@ pub mod read {
     pub const SUBSCRIPTIONS:&str = "channel:read:subscriptions";
     pub const CHAT:&str = "chat:read";
     pub const WHISPERS:&str = "whispers:read";
+    pub const CHANNEL_POINT_REDEMPTIONS:&str = "channel:read:redemptions";
 }
 
 pub mod edit {
@@ -35,7 +36,7 @@ pub fn get_all_analytics_scopes() -> String {
 }
 
 pub fn get_all_read_scopes() -> String {
-    return format!("{0}+{1}+{2}+{3}+{4}+{5}", read::BITS, read::BROADCAST, read::EMAIL_ADDRESS, read::SUBSCRIPTIONS, read::CHAT, read::WHISPERS);
+    return format!("{0}+{1}+{2}+{3}+{4}+{5}+{6}", read::BITS, read::BROADCAST, read::EMAIL_ADDRESS, read::SUBSCRIPTIONS, read::CHAT, read::WHISPERS, read::CHANNEL_POINT_REDEMPTIONS);
 }
 
 pub fn get_all_write_scopes() -> String {

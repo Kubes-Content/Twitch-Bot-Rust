@@ -1,7 +1,4 @@
-// use ReadableType
-
 use crate::json::crawler::reading_objects::readable_type::ReadableType;
-use crate::debug::fail_safely;
 
 
 pub trait IReadingObjectBase {
@@ -20,7 +17,7 @@ pub trait IReadingObject<T> : IReadingObjectBase {
 }
 
 pub fn initialize_interface(this:&mut dyn IReadingObjectBase, new_previous_crawler_context:ReadableType) {
-    if this.get_previous_crawler_context() != ReadableType::None { fail_safely(""); }
+    if this.get_previous_crawler_context() != ReadableType::None { panic!("JSON crawler: Incorrect previous context!!!"); }
 
 
     this.set_previous_crawler_context(new_previous_crawler_context);
@@ -40,7 +37,7 @@ impl<T> dyn IReadingObject<T> // I don't think I understand how this works..... 
 
     pub fn get_built_value(&mut self) -> T {
         let mut built_object:T = Default::default();
-        if !self.try_get_built_value(&mut built_object) { fail_safely(""); }
+        if !self.try_get_built_value(&mut built_object) { panic!("JSON Crawler: Could not build value."); }
 
 
         built_object

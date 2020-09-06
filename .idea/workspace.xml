@@ -38,15 +38,15 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
     <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
-    <property name="settings.editor.selected.configurable" value="language.rust" />
+    <property name="settings.editor.selected.configurable" value="preferences.sourceCode.Rust" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\irc\parsers" />
+      <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\irc" />
       <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\save_data\default" />
       <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\JSON\crawler\ReadingObjects\traits" />
       <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\IRC\traits" />
-      <recent name="C:\Users\Kubes The Almighty\CLionProjects\untitled1\src\CommonMacros" />
-      <recent name="C:\Users\Kubes The Almighty\CLionProjects\untitled1\src\JSON\Crawler\CharacterHandler" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -185,5 +185,10 @@
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
+    <watches-manager>
+      <configuration name="CargoCommandRunConfiguration">
+        <watch expression="content_type_header.inner.len" />
+      </configuration>
+    </watches-manager>
   </component>
 </project>

@@ -1,7 +1,6 @@
 use crate::json::crawler::json_object::JsonObject;
 use crate::json::crawler::reading_objects::readable_type::ReadableType;
 use crate::json::crawler::reading_objects::traits::reading_object::{IReadingObjectBase, IReadingObject};
-use crate::debug::fail_safely;
 use crate::json::crawler::json_property_key::JsonPropertyKey;
 use crate::json::crawler::json_property_value::JsonPropertyValue;
 
@@ -38,7 +37,7 @@ impl IReadingObjectBase for ReadingObject {
 
 impl IReadingObject<JsonObject> for ReadingObject {
     fn built_value(&mut self) -> JsonObject {
-        if !self.is_finalized() { fail_safely("Trying to build a reading JSON object that is not finalized."); }
+        if !self.is_finalized() { panic!("Trying to build a reading JSON object that is not finalized."); }
 
         self.built_value.clone()
     }
@@ -47,7 +46,7 @@ impl IReadingObject<JsonObject> for ReadingObject {
 impl ReadingObject {
     pub fn register_ending_curly_brace(&mut self) {
         if self.ending_curly_brace_registered {
-            fail_safely("Ending curly brace for reading JSON object was registered twice!!");
+            panic!("Ending curly brace for reading JSON object was registered twice!!");
         }
 
         self.ending_curly_brace_registered = true;

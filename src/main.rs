@@ -58,54 +58,64 @@ pub mod secrets;
 
 use user::oauth_token::OauthToken as UserOauthToken;
 use crate::user::user_data::Data as UserData;
-use crate::irc::chat_session::{IrcChatSession, TWITCH_IRC_URL};
+use crate::irc::web_socket_session::{WebSocketSession, TWITCH_IRC_URL};
 use crate::logger::{DefaultLogger, Logger};
 use std::str::FromStr;
-use crate::irc::default_irc_message_parser::DefaultMessageParser;
 use std::sync::{Arc, Mutex};
-use crate::credentials::client_secret::ClientSecret;
-use crate::irc::channel_chatter_data::ChatterData;
-use crate::user::user_properties::UserLogin;
-use tokio::time::{delay_for, Duration};
+use tokio::time::{Duration};
 use std::thread::sleep;
-use websocket::{ClientBuilder, OwnedMessage, WebSocketError};
+use crate::user::user_properties::UserLogin;
+use crate::irc::channel_chatter_data::ChatterData;
+use crate::irc::syncable_web_socket::SyncableClient;
+use crate::oauth::has_oauth_signature::HasOauthSignature;
 use websocket::url::Url;
-use websocket::futures::{IntoFuture, Async, Stream, Sink};
-use std::ops::{Deref, DerefMut};
-use tokio::macros::support::Pin;
-use websocket::client::r#async::{Framed, TcpStream};
-use websocket::header::Headers;
-use websocket::websocket_base::codec::ws::MessageCodec;
-use websocket::ws::dataframe::DataFrame;
-use crate::oauth::token_data::TokenData;
-use chrono::Local;
-use crate::oauth::signature::Signature;
+use crate::irc::parsers::default_pubsub_message_parser::DefaultPubSubParser;
+use crate::irc::parsers::default_irc_message_parser::DefaultMessageParser;
 
 
 #[tokio::main]
 async fn main() {
 
+    let (token,
+        user) = init_token_and_user(&DefaultLogger {}).await;
+
+    start_chat_session(&token, &user).await;
+
+    let pubsub_url = {
+      match Url::from_str("wss://pubsub-edge.twitch.tv") {
+          Ok(url) => {
+              url
+          },
+          Err(_) => {
+              panic!("Could not generate PubSub url.")
+          },
+      }
+    };
+
+    // create PubSub-WebSocket
+    let pubsub_session = WebSocketSession::new(user.clone(), token.clone(), DefaultPubSubParser::new(), DefaultLogger{}, pubsub_url);
+
+    let pubsub_arc = Arc::new(Mutex::new(pubsub_session));
+
+    let on_pubsub_start = | session:&mut WebSocketSession<DefaultPubSubParser<DefaultLogger>,DefaultLogger>, listener:&mut SyncableClient | {
+
+    };
+
+    WebSocketSession::initialize(pubsub_arc.clone(), on_pubsub_start);
 
 
-    // custom commands test
-    /*let mut test_custom_commands:HashMap<String,String> = HashMap::new();
-    test_custom_commands.insert("commandName_here".to_string(), "Command text that says stuff!!".to_string());
-    test_custom_commands.insert("commandName2_here".to_string(), "Command2 text that says stuff too!!".to_string());
+    let reqwest_client = reqwest::Client::builder().build().unwrap();
+    let client_user = user.get_login();
+    loop {
+        sleep(Duration::from_millis(1000));
+        tick(&reqwest_client, client_user.clone()).await;
+    }
+}
 
-    let test_custom_commands_save_data = CustomCommandsSaveData::new(test_custom_commands);
-
-    let channel = UserLogin::new("kubesvoxel".to_string());
-
-    test_custom_commands_save_data.save(channel.clone());
-
-    let test_custom_commands = CustomCommandsSaveData::load_or_default(channel.clone());*/
-
-
-
-
-    // params
-    let irc_url = {
-        match websocket::url::Url::from_str(TWITCH_IRC_URL) {
+async fn start_chat_session(token: &OauthToken, user: &UserData) {
+// params
+    let chat_url = {
+        match websocket::url::Url::from_str("ws://IRC-ws.chat.twitch.tv:80") {
             Ok(irc_url) => {
                 irc_url
             }
@@ -114,6 +124,29 @@ async fn main() {
             }
         }
     };
+// create Chat-IRC
+    let chat_session =
+        WebSocketSession::new(user.clone(), token.clone(), DefaultMessageParser::new(), DefaultLogger {}, chat_url);
+//
+// run Chat-IRC
+    let chat_irc_arc = Arc::new(Mutex::new(chat_session));
+    let token_temp = token.clone();
+    let user_temp = user.clone();
+    let on_chat_start = move |session: &mut WebSocketSession<DefaultMessageParser<DefaultLogger>, DefaultLogger>, listener: &mut SyncableClient| {
+
+        // authenticate user (login)
+        session.send_string(listener, format!("PASS oauth:{}", token_temp.clone().get_oauth_signature().get_value()));
+        session.send_string(listener, format!("NICK {}", user_temp.clone().get_login().get_value()));
+        session.send_string(listener, format!("JOIN #{}", user_temp.get_login().get_value()));
+    };
+    WebSocketSession::initialize(chat_irc_arc.clone(), on_chat_start).await;
+}
+
+
+async fn init_token_and_user<TLogger>(logger:&TLogger) -> (OauthToken, UserData)
+    where TLogger: Logger {
+
+
     let client = {
         match Client::builder().build() {
             Ok(client) => {
@@ -125,43 +158,24 @@ async fn main() {
         }
     };
 
-
-    // chatter_data test
-    /*let chatter_data = ChatterData::from_channel(&client, UserLogin::new("wormjuicedev".to_string())).await;
-    let all_viewers = chatter_data.get_all_viewers(true, true);*/
-
-    let (token,
-        user) = init_token_and_user(&client, DefaultLogger {}).await;
-    // create IRC
-    let irc = IrcChatSession::new(user.clone(), token, DefaultMessageParser::new(), DefaultLogger {}, irc_url);
-    //
-    // run IRC
-    let arc = Arc::new(Mutex::new(irc));
-    IrcChatSession::initialize(arc.clone(), vec![user.get_login()]).await;
-    //IrcChatSession::debug_start_async(arc.clone(), vec![user.get_login()]).await;
-
-    loop {
-        sleep(Duration::from_millis(9999));
-        //delay_for(Duration::from_millis(1)).await;
-    }
-
-    panic!("FORCE PANIC ON CLOSE!!!");
-}
-
-async fn init_token_and_user<TLogger>(client:&Client, logger:TLogger) -> (OauthToken, UserData)
-    where TLogger: Logger {
-    println!("TEST AUTH");
-
-
     // get user token
-    let token = UserOauthToken::request(client, ClientId::new(CLIENT_ID.to_string()), ClientSecret::new(CLIENT_SECRET.to_string())).await;
+    let token = UserOauthToken::request(&client, ClientId::new(CLIENT_ID.to_string()), CLIENT_SECRET, logger).await;
 
 
     // get logged in user's info
-    let user_data = user::user_data::Data::get_from_bearer_token(client, token.clone(), logger).await;
+    let user_data = user::user_data::Data::get_from_bearer_token(&client, token.clone(), logger).await;
 
 
     (token, user_data)
+}
+
+async fn tick(reqwest_client:&reqwest::Client, client_user:UserLogin) {
+
+    let chatter_data = ChatterData::from_channel(reqwest_client, client_user).await;
+    for viewer in chatter_data.get_all_viewers(true, true) {
+        println!("Tick sees viewer: {}", viewer.get_value());
+    }
+
 }
 
 pub fn get_input_from_console(heading:&str) -> String {
@@ -172,67 +186,4 @@ pub fn get_input_from_console(heading:&str) -> String {
     let value = stdin.lock().lines().next().unwrap().unwrap();
 
     value
-}
-
-
-async fn concurrent_test() {
-
-    tokio::task::spawn( async move {
-        loop {
-            println!("1");
-            delay_for(Duration::from_millis(10)).await;
-        }
-    });
-    tokio::task::spawn( async move {
-        loop {
-            println!("2");
-            delay_for(Duration::from_millis(10)).await;
-        }
-    });
-
-    delay_for(Duration::from_millis(10)).await;
-}
-
-// test thread and task mixing? (thread blocking)
-
-async fn test_async_websocket(url:&Url){
-    let mut client_future = ClientBuilder::from_url(url).async_connect_insecure();
-        let delay = 2;
-
-    match client_future.poll() {
-        Ok( mut a ) => {
-            match a {
-                Async::Ready((mut c,h)) => {
-                    let stream = c.poll();
-                    match stream {
-                        Ok(stream_async) => {
-                            match stream_async {
-                                Async::Ready(potential_message) => {
-                                    match potential_message {
-                                        None => {
-
-                                        },
-                                        Some(message) => {
-                                            let message_text = String::from_utf8_lossy(&message.take_payload()).to_string();
-                                            println!("")
-                                        },
-                                    }
-                                },
-                                Async::NotReady => {},
-                            }
-                        }
-                        Err(_) => {},
-                    }
-                },
-                Async::NotReady => {
-                    delay_for(Duration::from_millis(delay)).await;
-                },
-            }
-        },
-        Err(e ) => {
-            println!("ERROR: {}", e);
-        },
-    }
-
-
 }
