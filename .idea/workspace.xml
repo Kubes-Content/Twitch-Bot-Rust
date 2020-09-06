@@ -42,11 +42,11 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\irc\parsers\pubsub\event" />
+      <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\irc\parsers\pubsub" />
       <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\irc\parsers" />
       <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\irc" />
       <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\save_data\default" />
-      <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\JSON\crawler\ReadingObjects\traits" />
-      <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\IRC\traits" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -182,6 +182,16 @@
           <url>file://$PROJECT_DIR$/src/json/crawler/json_object.rs</url>
           <line>54</line>
           <option name="timeStamp" value="103" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/src/irc/parsers/pubsub/default_message_parser.rs</url>
+          <line>25</line>
+          <option name="timeStamp" value="132" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/src/irc/parsers/pubsub/event/channel_points_event/mod.rs</url>
+          <line>47</line>
+          <option name="timeStamp" value="133" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

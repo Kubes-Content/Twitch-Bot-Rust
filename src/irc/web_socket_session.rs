@@ -2,10 +2,9 @@ use crate::irc::traits::message_parser::MessageParser;
 use crate::user::user_properties::UserLogin;
 use crate::logger::{Logger};
 use crate::user::oauth_token::OauthToken as UserOauthToken;
-use crate::oauth::has_oauth_signature::HasOauthSignature;
 
 use websocket::url::Url;
-use websocket::{Message, WebSocketError};
+use websocket::{Message, WebSocketError, ClientBuilder};
 use websocket::ws::dataframe::DataFrame;
 use tokio::time::{Duration};
 use crate::irc::response_context::ResponseContext;
@@ -15,6 +14,8 @@ use std::sync::{Arc, Mutex};
 use std::ops::Deref;
 use crate::irc::syncable_web_socket::SyncableClient;
 use std::thread::sleep;
+use websocket::client::sync::Client;
+use websocket::websocket_base::stream::sync::{NetworkStream, TlsStream, TcpStream};
 
 
 pub struct WebSocketSession<TParser, TLogger>
@@ -48,7 +49,7 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
     // Init
     //
     pub async fn initialize<TOnStartFunction>(self_arc:Arc<Mutex<Self>>, on_start_function:TOnStartFunction)
-        where TOnStartFunction: FnOnce(&mut Self, &mut SyncableClient) {
+        where TOnStartFunction: FnOnce(&mut Self, &mut Client<TlsStream<TcpStream>>) {
 
 
         //let listen_future = Self::begin_continuous_listen(self_arc.clone(), &mut irc_listener);
@@ -56,13 +57,15 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
         let self_arc1 = self_arc.clone();
 
         let mut irc_listener;
+        let url;
         {
             let local_arc = self_arc;
 
             let local_mutex = local_arc.deref().lock().unwrap();
             let mut self_ref = local_mutex;
 
-            irc_listener = SyncableClient::new(self_ref.irc_url.clone());
+            url = self_ref.irc_url.clone();
+            irc_listener = ClientBuilder::from_url(&url).connect_secure(None).unwrap();
 
             on_start_function(&mut self_ref, &mut irc_listener);
         }
@@ -91,12 +94,7 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
         });
     }
     //
-    async fn authenticate_user(&mut self, irc_dispatcher:&mut SyncableClient) {
-        self.send_string(irc_dispatcher, format!("{0}{1}", IRC_TOKEN_PREFIX, self.user_token.get_oauth_signature().get_value()));
-        self.send_string(irc_dispatcher, format!("{0}{1}", IRC_USERNAME_PREFIX, self.client_user.get_login().get_value()));
-    }
-    //
-    fn listen(self_arc:Arc<Mutex<Self>>, irc_listener:&mut SyncableClient) {
+    fn listen(self_arc:Arc<Mutex<Self>>, irc_listener:&mut Client<TlsStream<TcpStream>>) {
 
        println!("listen waiting for message...");
 
@@ -127,35 +125,16 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
         }
         println!("RCVD: {}", received_string);
     }
-    //
 
-    /*async fn tick(self_arc:Arc<Mutex<Self>>) {
-        println!("IRC Tick.");
-
-
-        let reqwest_client = reqwest::Client::builder().build().unwrap(); // TODO make syncable to prevent locking self's mutex
-
-        let client_user:UserLogin;
-        {
-            let self_mutex = self_arc.deref();
-            client_user = self_mutex.lock().unwrap().client_user.get_login();
-        }
-
-        let chatter_data = ChatterData::from_channel(&reqwest_client, client_user).await;
-        for viewer in chatter_data.get_all_viewers(true, true) {
-            println!("Tick sees viewer: {}", viewer.get_value());
-        }
-    }*/
-
-    pub fn send_string(&self, irc_dispatcher:&mut SyncableClient, data_to_send: String) {
+    pub fn send_string(&self, irc_dispatcher:&mut Client<TlsStream<TcpStream>>, data_to_send: String) {
         irc_dispatcher.send_message(&Message::text(data_to_send.clone())).unwrap();
 
-        if !data_to_send.contains("PASS") {
+        if !data_to_send.contains("PASS") && !data_to_send.contains("auth_token:") {
             println!("SENT: {}", data_to_send);
         }
     }
 
-    fn register_received_data(&self, irc_dispatcher:&mut SyncableClient, received_data: &str) {
+    fn register_received_data(&self, irc_dispatcher:&mut Client<TlsStream<TcpStream>>, received_data: &str) {
         const NEW_LINE: &str = "\r\n";
 
         for line in received_data.split(NEW_LINE) {
@@ -167,7 +146,7 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
         }
     }
 
-    pub fn process_response (&self, irc_dispatcher:&mut SyncableClient, response:String) {
+    pub fn process_response (&self, irc_dispatcher:&mut Client<TlsStream<TcpStream>>, response:String) {
         let mut context = ResponseContext::new(self.client_user.clone(), response.to_string());
         if !self.message_parser.process_response(&mut context, &self.logger) {
             self.logger.write_line(format!("IRC PARSER FAILED TO READ LINE: {0}", response));
@@ -178,7 +157,7 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
         }
     }
 
-    pub fn join_chat_channel(&mut self, irc_dispatcher:&mut SyncableClient, user_login: UserLogin) {
+    pub fn join_chat_channel(&mut self, irc_dispatcher:&mut Client<TlsStream<TcpStream>>, user_login: UserLogin) {
         const JOIN_PREFIX: &str = "JOIN #";
 
         self.send_string(irc_dispatcher, format!("{0}{1}", JOIN_PREFIX, user_login.get_value()));

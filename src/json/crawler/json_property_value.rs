@@ -113,6 +113,14 @@ impl JsonPropertyValue {
         self.json_object_value.clone()
     }
 
+    pub fn get_nullable_object_value(&self) -> Option<JsonObject> {
+        if self.value_type == PropertyType::String && self.get_string_value() == "null" {
+            None
+        } else {
+            Some(self.get_object_value())
+        }
+    }
+
     pub fn get_object_vector_value(&self) -> Vec<JsonObject> {
         if self.value_type != PropertyType::JsonObjectVector {
             panic!("Could not get vector of JSON objects.");

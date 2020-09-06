@@ -130,6 +130,10 @@ impl JsonObject {
             .get_object_value()
     }
 
+    pub fn get_nullable_object_property(&self, key:String) -> Option<JsonObject> {
+        self.get_property_value_copy(JsonPropertyKey::new(key, PropertyType::Invalid)).get_nullable_object_value()
+    }
+
     pub fn use_all_key_value_pairs<UseKVPFunc>(&self, mut func:UseKVPFunc)
         where UseKVPFunc : FnMut(JsonPropertyKey, JsonPropertyValue) {
         for (key, value) in self.properties.clone() {

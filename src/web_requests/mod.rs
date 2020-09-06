@@ -5,31 +5,48 @@ pub mod header;
 pub mod twitch;
 
 use self::reqwest::header::{HeaderMap};
-use self::reqwest::{Response, RequestBuilder, Client};
+use self::reqwest::{Response, RequestBuilder, Client, Request, Error};
 use crate::logger::Logger;
+use std::net::Incoming;
 
 
 pub async fn post_request(client:&reqwest::Client, url_string:&str, headers:HeaderMap) -> Response {
-   submit_request(client, client.post(url_string), headers).await
+   for attempt in 1..4 {
+      match submit_request_builder(client, client.post(url_string.clone()), headers.clone(), 3).await {
+         Ok(response) => {
+            return response;
+         },
+         Err(e) => {
+            println!("Post-request error: {}", e)
+         },
+      }
+   }
+   panic!("POST-REQUEST FAILED AFTER 3 ATTEMPTS")
 }
 
 pub async fn request(client:&reqwest::Client, url_string:&str, headers:HeaderMap) -> Response {
-   submit_request(client, client.get(url_string), headers).await
+   for attempt in 1..4 {
+      match submit_request_builder(client, client.get(url_string.clone()), headers.clone(), 3).await {
+         Ok(response) => {
+            return response;
+         },
+         Err(e) => {
+            println!("Get-request error: {}", e)
+
+         },
+      }
+   }
+   panic!("GET-REQUEST FAILED AFTER 3 ATTEMPTS")
 }
 
-async fn submit_request(client:&Client, request_builder:RequestBuilder, headers:HeaderMap) -> Response {
-   let request_result = request_builder.headers(headers).build();
+async fn submit_request_builder(client:&Client, request_builder:RequestBuilder, headers:HeaderMap, attempts:u8) -> Result<Response,Error> {
+   submit_request(client, request_builder.headers(headers), attempts).await
+}
 
-   match request_result {
+async fn submit_request(client:&Client, request_builder:RequestBuilder, attempts:u8) -> Result<Response,Error> {
+   match request_builder.build() {
       Ok(request) => {
-         match client.execute(request).await {
-            Ok(response) => {
-               response
-            },
-            Err(e) => {
-               panic!("WEB RESPONSE NOT RECEIVED! Error: {}", e)
-            }
-         }
+         client.execute(request).await
       },
       Err(_) => {
          panic!("WEB REQUEST FAILED!")

@@ -58,7 +58,7 @@ pub mod secrets;
 
 use user::oauth_token::OauthToken as UserOauthToken;
 use crate::user::user_data::Data as UserData;
-use crate::irc::web_socket_session::{WebSocketSession, TWITCH_IRC_URL};
+use crate::irc::web_socket_session::{WebSocketSession};
 use crate::logger::{DefaultLogger, Logger};
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
@@ -69,8 +69,9 @@ use crate::irc::channel_chatter_data::ChatterData;
 use crate::irc::syncable_web_socket::SyncableClient;
 use crate::oauth::has_oauth_signature::HasOauthSignature;
 use websocket::url::Url;
-use crate::irc::parsers::default_pubsub_message_parser::DefaultPubSubParser;
 use crate::irc::parsers::default_irc_message_parser::DefaultMessageParser;
+use crate::irc::parsers::pubsub::default_message_parser::DefaultPubSubParser;
+use websocket::stream::sync::{TlsStream, TcpStream};
 
 
 #[tokio::main]
@@ -79,7 +80,7 @@ async fn main() {
     let (token,
         user) = init_token_and_user(&DefaultLogger {}).await;
 
-    start_chat_session(&token, &user).await;
+    //start_chat_session(&token, &user).await;
 
     let pubsub_url = {
       match Url::from_str("wss://pubsub-edge.twitch.tv") {
@@ -91,17 +92,26 @@ async fn main() {
           },
       }
     };
-
     // create PubSub-WebSocket
     let pubsub_session = WebSocketSession::new(user.clone(), token.clone(), DefaultPubSubParser::new(), DefaultLogger{}, pubsub_url);
 
     let pubsub_arc = Arc::new(Mutex::new(pubsub_session));
-
-    let on_pubsub_start = | session:&mut WebSocketSession<DefaultPubSubParser<DefaultLogger>,DefaultLogger>, listener:&mut SyncableClient | {
-
+    let temp_channel_id = user.clone().get_user_id().get_value();
+    let temp_oauth = token.clone().get_oauth_signature().get_value();
+    let on_pubsub_start = move | session:&mut WebSocketSession<DefaultPubSubParser,DefaultLogger>, listener:&mut websocket::sync::Client<TlsStream<TcpStream>> | {
+        session.send_string(listener, format!("{{\
+        \"type\": \"LISTEN\",\
+        \"nonce\": \"333\",\
+        \"data\": {{\
+        \"topics\": [
+        \"channel-points-channel-v1.{0}\"
+        ],\
+        \"auth_token\": \"{1}\"\
+        }}
+        }}", temp_channel_id, temp_oauth));
     };
 
-    WebSocketSession::initialize(pubsub_arc.clone(), on_pubsub_start);
+    WebSocketSession::initialize(pubsub_arc.clone(), on_pubsub_start).await;
 
 
     let reqwest_client = reqwest::Client::builder().build().unwrap();
@@ -132,7 +142,7 @@ async fn start_chat_session(token: &OauthToken, user: &UserData) {
     let chat_irc_arc = Arc::new(Mutex::new(chat_session));
     let token_temp = token.clone();
     let user_temp = user.clone();
-    let on_chat_start = move |session: &mut WebSocketSession<DefaultMessageParser<DefaultLogger>, DefaultLogger>, listener: &mut SyncableClient| {
+    let on_chat_start = move |session: &mut WebSocketSession<DefaultMessageParser<DefaultLogger>, DefaultLogger>, listener: &mut websocket::sync::Client<TlsStream<TcpStream>>| {
 
         // authenticate user (login)
         session.send_string(listener, format!("PASS oauth:{}", token_temp.clone().get_oauth_signature().get_value()));
