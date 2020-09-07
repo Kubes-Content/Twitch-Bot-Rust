@@ -1,4 +1,4 @@
-use crate::irc::twitch_user_message::TwitchIrcUserMessage;
+use crate::irc_chat::twitch_user_message::TwitchIrcUserMessage;
 use crate::user::user_properties::UserLogin;
 
 

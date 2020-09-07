@@ -14,17 +14,20 @@ use websocket::url::Url;
 
 use user::oauth_token::OauthToken as UserOauthToken;
 
-use crate::credentials::client_id::ClientId;
-use crate::irc::channel_chatter_data::ChatterData;
-use crate::irc::parsers::default_irc_message_parser::DefaultMessageParser;
-use crate::irc::parsers::pubsub::default_message_parser::DefaultPubSubParser;
-use crate::irc::web_socket_session::WebSocketSession;
-use crate::logger::{DefaultLogger, Logger};
-use crate::oauth::has_oauth_signature::HasOauthSignature;
-use crate::secrets::{CLIENT_ID, CLIENT_SECRET};
-use crate::user::oauth_token::OauthToken;
-use crate::user::user_data::Data as UserData;
-use crate::user::user_properties::UserLogin;
+
+use credentials::client_id::ClientId;
+use irc_chat::channel_chatter_data::ChatterData;
+use irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
+use irc_chat::parsers::pubsub::default_message_parser::DefaultPubSubParser;
+use irc_chat::web_socket_session::WebSocketSession;
+use logger::{DefaultLogger, Logger};
+use oauth::has_oauth_signature::HasOauthSignature;
+use secrets::{CLIENT_ID, CLIENT_SECRET};
+use user::oauth_token::OauthToken;
+use user::user_data::Data as UserData;
+use user::user_properties::UserLogin;
+use std::time::Instant;
+use std::convert::TryFrom;
 
 
 #[macro_use]
@@ -61,7 +64,7 @@ pub mod macros {
     }
 }
 
-pub mod irc;
+pub mod irc_chat;
 pub mod credentials;
 pub mod json;
 pub mod debug;
@@ -86,12 +89,8 @@ async fn main() {
 
     let pubsub_url = {
       match Url::from_str("wss://pubsub-edge.twitch.tv") {
-          Ok(url) => {
-              url
-          },
-          Err(_) => {
-              panic!("Could not generate PubSub url.")
-          },
+          Ok(url) => { url },
+          Err(e) => { panic!("Could not generate PubSub url. ERROR: {}", e) },
       }
     };
     // create PubSub-WebSocket
@@ -118,9 +117,20 @@ async fn main() {
 
     let reqwest_client = reqwest::Client::builder().build().unwrap();
     let client_user = user.get_login();
+
+    sleep(Duration::from_millis(1000));
     loop {
-        sleep(Duration::from_millis(1000));
+        let before_tick_instant = Instant::now();
+
         tick(&reqwest_client, client_user.clone()).await;
+
+        let tick_elapsed_time = {
+            match u64::try_from(before_tick_instant.elapsed().as_millis()) {
+                Ok(new64) => { if new64 > 999 { 999 } else { new64 } }, Err(_) => { 999 },
+            }
+        };
+
+        sleep(Duration::from_millis(1000-tick_elapsed_time));
     }
 }
 

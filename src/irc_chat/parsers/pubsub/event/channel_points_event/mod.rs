@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use url::Url;
 
-use crate::irc::parsers::pubsub::event::channel_points_event::reward_signature::{ImageUrlSignature, RewardSignature};
+use crate::irc_chat::parsers::pubsub::event::channel_points_event::reward_signature::{ImageUrlSignature, RewardSignature};
 use crate::json::crawler::json_object::JsonObject;
 use crate::user::user_properties::{UserId, UserLogin};
 

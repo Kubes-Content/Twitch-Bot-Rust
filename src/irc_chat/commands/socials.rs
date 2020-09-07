@@ -1,7 +1,7 @@
-use crate::irc::chat_message_parser::IrcMessageParser;
-use crate::irc::commands::send_message_from_client_user_format;
-use crate::irc::response_context::ResponseContext;
-use crate::irc::twitch_user_message::TwitchIrcUserMessage;
+use crate::irc_chat::chat_message_parser::IrcMessageParser;
+use crate::irc_chat::commands::send_message_from_client_user_format;
+use crate::irc_chat::response_context::ResponseContext;
+use crate::irc_chat::twitch_user_message::TwitchIrcUserMessage;
 use crate::logger::Logger;
 
 

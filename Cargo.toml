@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 chrono = "*"
-crossbeam = "*"
+colour = "*"
 futures = "*"
 futures-channel = "*"
 open = "*"

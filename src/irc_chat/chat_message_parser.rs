@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use crate::irc::response_context::ResponseContext;
-use crate::irc::traits::message_parser::MessageParser;
-use crate::irc::twitch_user_message::TwitchIrcUserMessage;
+use crate::irc_chat::response_context::ResponseContext;
+use crate::irc_chat::traits::message_parser::MessageParser;
+use crate::irc_chat::twitch_user_message::TwitchIrcUserMessage;
 use crate::logger::Logger;
 
 

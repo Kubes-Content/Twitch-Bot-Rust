@@ -1,9 +1,9 @@
 use std::ops::Range;
 
-use crate::irc::{response_context::ResponseContext,
+use crate::irc_chat::{response_context::ResponseContext,
                  twitch_user_message::TwitchIrcUserMessage};
-use crate::irc::chat_message_parser::IrcMessageParser;
-use crate::irc::commands::send_message_from_client_user_format;
+use crate::irc_chat::chat_message_parser::IrcMessageParser;
+use crate::irc_chat::commands::send_message_from_client_user_format;
 use crate::logger::Logger;
 use crate::save_data::default::custom_commands_save_data::CustomCommandsSaveData;
 

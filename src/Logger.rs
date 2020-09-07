@@ -17,7 +17,5 @@ impl Logger for DefaultLogger {
         println!("{}", output);
     }
 
-    fn clear(&self) {
-        unimplemented!()
-    }
+    fn clear(&self) { }
 }

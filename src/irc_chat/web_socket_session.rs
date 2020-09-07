@@ -10,8 +10,8 @@ use websocket::url::Url;
 use websocket::websocket_base::stream::sync::{TcpStream, TlsStream};
 use websocket::ws::dataframe::DataFrame;
 
-use crate::irc::response_context::ResponseContext;
-use crate::irc::traits::message_parser::MessageParser;
+use crate::irc_chat::response_context::ResponseContext;
+use crate::irc_chat::traits::message_parser::MessageParser;
 use crate::logger::Logger;
 use crate::user::oauth_token::OauthToken as UserOauthToken;
 use crate::user::user_data::Data as UserData;

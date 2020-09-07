@@ -1,4 +1,4 @@
-use crate::irc::response_context::ResponseContext;
+use crate::irc_chat::response_context::ResponseContext;
 use crate::logger::Logger;
 
 
