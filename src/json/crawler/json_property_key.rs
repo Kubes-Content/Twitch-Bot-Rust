@@ -1,5 +1,6 @@
-use crate::json::crawler::property_type::PropertyType;
 use std::hash::{Hash, Hasher};
+
+use crate::json::crawler::property_type::PropertyType;
 
 
 #[derive(Clone)]

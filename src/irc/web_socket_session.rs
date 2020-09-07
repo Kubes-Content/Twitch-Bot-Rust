@@ -1,21 +1,21 @@
-use crate::irc::traits::message_parser::MessageParser;
-use crate::user::user_properties::UserLogin;
-use crate::logger::{Logger};
-use crate::user::oauth_token::OauthToken as UserOauthToken;
-
-use websocket::url::Url;
-use websocket::{Message, WebSocketError, ClientBuilder};
-use websocket::ws::dataframe::DataFrame;
-use tokio::time::{Duration};
-use crate::irc::response_context::ResponseContext;
-use crate::user::user_data::Data as UserData;
-use std::time::Instant;
-use std::sync::{Arc, Mutex};
 use std::ops::Deref;
-use crate::irc::syncable_web_socket::SyncableClient;
+use std::sync::{Arc, Mutex};
 use std::thread::sleep;
+use std::time::Instant;
+
+use tokio::time::Duration;
+use websocket::{ClientBuilder, Message, WebSocketError};
 use websocket::client::sync::Client;
-use websocket::websocket_base::stream::sync::{NetworkStream, TlsStream, TcpStream};
+use websocket::url::Url;
+use websocket::websocket_base::stream::sync::{TcpStream, TlsStream};
+use websocket::ws::dataframe::DataFrame;
+
+use crate::irc::response_context::ResponseContext;
+use crate::irc::traits::message_parser::MessageParser;
+use crate::logger::Logger;
+use crate::user::oauth_token::OauthToken as UserOauthToken;
+use crate::user::user_data::Data as UserData;
+use crate::user::user_properties::UserLogin;
 
 
 pub struct WebSocketSession<TParser, TLogger>

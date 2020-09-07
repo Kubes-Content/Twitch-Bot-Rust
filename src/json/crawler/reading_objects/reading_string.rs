@@ -1,5 +1,6 @@
-use crate::json::crawler::reading_objects::traits::reading_object::{IReadingObject, IReadingObjectBase};
 use crate::json::crawler::reading_objects::readable_type::ReadableType;
+use crate::json::crawler::reading_objects::traits::reading_object::{IReadingObject, IReadingObjectBase};
+
 
 #[derive(Clone)]
 pub struct ReadingString {

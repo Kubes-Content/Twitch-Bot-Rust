@@ -2,6 +2,7 @@
 
 use crate::json::crawler::scope::Scope;
 
+
 pub trait CharacterContextHandler {
     //fn get_current_scope(&self) -> Scope;
     //

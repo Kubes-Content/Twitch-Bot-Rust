@@ -1,9 +1,9 @@
 use crate::json::crawler::character_handler::character_context_handler::CharacterContextHandler;
-use crate::json::crawler::scope::Scope;
-use crate::json::crawler::reading_objects::readable_type::ReadableType;
 use crate::json::crawler::property_type::PropertyType;
-use crate::json::crawler::reading_objects::reading_property_value::ReadingPropertyValue;
+use crate::json::crawler::reading_objects::readable_type::ReadableType;
 use crate::json::crawler::reading_objects::reading_property_key::ReadingPropertyKey;
+use crate::json::crawler::reading_objects::reading_property_value::ReadingPropertyValue;
+use crate::json::crawler::scope::Scope;
 
 
 #[derive(Copy,Clone)]

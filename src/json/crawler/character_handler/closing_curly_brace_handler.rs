@@ -1,13 +1,12 @@
-use crate::json::crawler::scope::Scope;
-// use PropertyType
-
 use crate::json::crawler::character_handler::character_context_handler::CharacterContextHandler;
+use crate::json::crawler::json_property_value::JsonPropertyValue;
 use crate::json::crawler::property_type::PropertyType;
 use crate::json::crawler::reading_objects::reading_object::ReadingObject;
-use crate::json::crawler::reading_objects::traits::reading_object::IReadingObject;
 use crate::json::crawler::reading_objects::reading_property_value::ReadingPropertyValue;
-use crate::json::crawler::json_property_value::JsonPropertyValue;
+use crate::json::crawler::reading_objects::traits::reading_object::IReadingObject;
+use crate::json::crawler::scope::Scope;
 
+// use PropertyType
 
 #[derive(Copy,Clone)]
 pub struct ClosingCurlyBraceHandler {

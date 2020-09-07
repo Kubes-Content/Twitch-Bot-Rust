@@ -1,8 +1,8 @@
-use crate::logger::Logger;
+use crate::irc::chat_message_parser::IrcMessageParser;
+use crate::irc::commands::send_message_from_client_user_format;
 use crate::irc::response_context::ResponseContext;
 use crate::irc::twitch_user_message::TwitchIrcUserMessage;
-use crate::irc::commands::send_message_from_client_user_format;
-use crate::irc::chat_message_parser::IrcMessageParser;
+use crate::logger::Logger;
 
 
 pub fn all_commands<TParser,TLogger>(parser: TParser, message: TwitchIrcUserMessage, args: Vec<String>, context: &mut ResponseContext, logger: &TLogger)

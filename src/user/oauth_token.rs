@@ -1,22 +1,23 @@
-use crate::oauth::token_data::TokenData;
-use crate::credentials::client_id::ClientId;
-use crate::oauth::has_oauth_signature::HasOauthSignature;
-use crate::oauth::validation_token::ValidationToken;
-use crate::oauth::signature::Signature;
-use crate::credentials::bot_user_credentials::REDIRECT_URI;
-use crate::credentials::access_scopes::get_all_scopes;
-use crate::web_requests::header::Header as WebRequestHeader;
-use reqwest::{Client};
-use crate::web_requests::twitch::{request_data, TwitchRequestResponse};
-use reqwest::header::{HeaderMap, HeaderValue};
-use crate::json::crawler::crawl_json;
-use crate::web_requests::{request, is_html, is_json, post_request};
-use crate::logger::Logger;
+use std::io::{ErrorKind, Read};
 use std::net::TcpListener;
-use std::io::{Read, ErrorKind};
 use std::ops::Add;
-use crate::credentials::client_secret::ClientSecret;
 
+use reqwest::Client;
+use reqwest::header::{HeaderMap, HeaderValue};
+
+use crate::credentials::access_scopes::get_all_scopes;
+use crate::credentials::bot_user_credentials::REDIRECT_URI;
+use crate::credentials::client_id::ClientId;
+use crate::credentials::client_secret::ClientSecret;
+use crate::json::crawler::crawl_json;
+use crate::logger::Logger;
+use crate::oauth::has_oauth_signature::HasOauthSignature;
+use crate::oauth::signature::Signature;
+use crate::oauth::token_data::TokenData;
+use crate::oauth::validation_token::ValidationToken;
+use crate::web_requests::{is_html, is_json, post_request, request};
+use crate::web_requests::header::Header as WebRequestHeader;
+use crate::web_requests::twitch::{request_data, TwitchRequestResponse};
 
 primitiveWrapper!(OauthToken, TokenData, "{}");
 

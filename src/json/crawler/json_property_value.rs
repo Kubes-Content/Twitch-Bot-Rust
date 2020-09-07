@@ -1,6 +1,7 @@
 use crate::json::crawler::json_object::JsonObject;
 use crate::json::crawler::property_type::PropertyType;
 
+
 #[derive(Clone)]
 pub struct JsonPropertyValue {
     string_value:String,

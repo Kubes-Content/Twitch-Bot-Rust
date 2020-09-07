@@ -1,8 +1,8 @@
-use crate::json::crawler::reading_objects::traits::reading_object::{IReadingObjectBase, IReadingObject};
 use crate::json::crawler::json_property_key::JsonPropertyKey;
-use crate::json::crawler::reading_objects::reading_string::ReadingString;
 use crate::json::crawler::property_type::PropertyType;
 use crate::json::crawler::reading_objects::readable_type::ReadableType;
+use crate::json::crawler::reading_objects::reading_string::ReadingString;
+use crate::json::crawler::reading_objects::traits::reading_object::{IReadingObject, IReadingObjectBase};
 
 
 pub struct ReadingPropertyKey {

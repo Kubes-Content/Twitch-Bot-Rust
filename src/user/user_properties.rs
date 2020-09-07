@@ -1,5 +1,9 @@
 primitiveWrapper!(UserId, u32, "(User ID: {})");
 
+impl UserId {
+    pub const LENGTH:usize = 8;
+}
+
 primitiveWrapper!(UserLogin, String, "(User Login: {})");
 
 primitiveWrapper!(UserDisplayName, String, "(User Display Name: {})");

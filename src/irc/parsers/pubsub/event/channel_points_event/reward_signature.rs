@@ -1,5 +1,6 @@
-use crate::user::user_properties::UserId;
 use url::Url;
+
+use crate::user::user_properties::UserId;
 
 
 pub struct RewardSignature {

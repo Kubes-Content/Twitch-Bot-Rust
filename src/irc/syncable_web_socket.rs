@@ -1,7 +1,7 @@
+use websocket::{ClientBuilder, Message, OwnedMessage, WebSocketResult};
 use websocket::client::sync::Client;
-use websocket::websocket_base::stream::sync::TcpStream;
-use websocket::{ClientBuilder, Message, WebSocketResult, OwnedMessage};
 use websocket::url::Url;
+use websocket::websocket_base::stream::sync::TcpStream;
 
 
 pub struct SyncableClient {

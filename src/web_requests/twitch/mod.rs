@@ -1,7 +1,8 @@
+use crate::logger::Logger;
+use crate::web_requests::{is_html, is_json, request};
+
 use super::reqwest::{Client, Response};
 use super::reqwest::header::HeaderMap;
-use crate::web_requests::{request, is_html, is_json};
-use crate::logger::Logger;
 
 
 pub enum TwitchRequestResponse {

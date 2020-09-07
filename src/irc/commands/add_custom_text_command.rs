@@ -1,10 +1,11 @@
-use crate::logger::Logger;
-use crate::irc::{response_context::ResponseContext,
-                 twitch_user_message::TwitchIrcUserMessage };
-use crate::irc::commands::send_message_from_client_user_format;
-use crate::save_data::default::custom_commands_save_data::CustomCommandsSaveData;
 use std::ops::Range;
+
+use crate::irc::{response_context::ResponseContext,
+                 twitch_user_message::TwitchIrcUserMessage};
 use crate::irc::chat_message_parser::IrcMessageParser;
+use crate::irc::commands::send_message_from_client_user_format;
+use crate::logger::Logger;
+use crate::save_data::default::custom_commands_save_data::CustomCommandsSaveData;
 
 
 pub fn add_custom_text_command<TParser, TLogger>(parser: TParser, message: TwitchIrcUserMessage, args: Vec<String>, context: &mut ResponseContext, _logger: &TLogger)

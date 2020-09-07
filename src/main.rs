@@ -1,11 +1,30 @@
 extern crate futures;
 extern crate tokio;
 
+
+use std::io::{BufRead, stdin};
+use std::str::FromStr;
+use std::sync::{Arc, Mutex};
+use std::thread::sleep;
+
 use reqwest::Client;
-use std::io::{stdin, BufRead};
-use crate::secrets::{CLIENT_ID, CLIENT_SECRET};
+use tokio::time::Duration;
+use websocket::stream::sync::{TcpStream, TlsStream};
+use websocket::url::Url;
+
+use user::oauth_token::OauthToken as UserOauthToken;
+
 use crate::credentials::client_id::ClientId;
+use crate::irc::channel_chatter_data::ChatterData;
+use crate::irc::parsers::default_irc_message_parser::DefaultMessageParser;
+use crate::irc::parsers::pubsub::default_message_parser::DefaultPubSubParser;
+use crate::irc::web_socket_session::WebSocketSession;
+use crate::logger::{DefaultLogger, Logger};
+use crate::oauth::has_oauth_signature::HasOauthSignature;
+use crate::secrets::{CLIENT_ID, CLIENT_SECRET};
 use crate::user::oauth_token::OauthToken;
+use crate::user::user_data::Data as UserData;
+use crate::user::user_properties::UserLogin;
 
 
 #[macro_use]
@@ -55,23 +74,6 @@ pub mod web_requests;
 pub mod logger;
 
 pub mod secrets;
-
-use user::oauth_token::OauthToken as UserOauthToken;
-use crate::user::user_data::Data as UserData;
-use crate::irc::web_socket_session::{WebSocketSession};
-use crate::logger::{DefaultLogger, Logger};
-use std::str::FromStr;
-use std::sync::{Arc, Mutex};
-use tokio::time::{Duration};
-use std::thread::sleep;
-use crate::user::user_properties::UserLogin;
-use crate::irc::channel_chatter_data::ChatterData;
-use crate::irc::syncable_web_socket::SyncableClient;
-use crate::oauth::has_oauth_signature::HasOauthSignature;
-use websocket::url::Url;
-use crate::irc::parsers::default_irc_message_parser::DefaultMessageParser;
-use crate::irc::parsers::pubsub::default_message_parser::DefaultPubSubParser;
-use websocket::stream::sync::{TlsStream, TcpStream};
 
 
 #[tokio::main]

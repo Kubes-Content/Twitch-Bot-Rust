@@ -1,11 +1,10 @@
-use crate::user::user_properties::UserLogin;
-use crate::json::crawler::json_object::JsonObject;
-use crate::web_requests::{request};
-use reqwest::{Client};
+use reqwest::Client;
 use reqwest::header::HeaderMap;
+
 use crate::json::crawler::crawl_json;
-use crate::json::crawler::json_property_key::JsonPropertyKey;
-use crate::json::crawler::property_type::PropertyType;
+use crate::json::crawler::json_object::JsonObject;
+use crate::user::user_properties::UserLogin;
+use crate::web_requests::request;
 
 
 pub struct ChatterData {
@@ -47,7 +46,7 @@ impl ChatterData {
         let chatter_count = json_object.get_u32_property_value(CHATTER_COUNT_PROPERTY.to_string());
 
         // shadowing
-        let json_object = json_object.get_object_property(JsonPropertyKey::new(CHATTERS_PROPERTY.to_string(), PropertyType::Invalid));
+        let json_object = json_object.get_object_property(CHATTERS_PROPERTY.to_string());
 
         let broadcaster:Vec<UserLogin> = json_object.get_string_vector_property_value(BROADCASTER_PROPERTY.to_string()).into_iter().map(|s| UserLogin::new(s)).collect();
         let vips:Vec<UserLogin> = json_object.get_string_vector_property_value(VIPS_PROPERTY.to_string()).into_iter().map(|s| UserLogin::new(s)).collect();

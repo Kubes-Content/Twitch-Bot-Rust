@@ -1,5 +1,5 @@
-use crate::logger::Logger;
 use crate::irc::response_context::ResponseContext;
+use crate::logger::Logger;
 
 
 pub trait MessageParser<TLogger>: Sync + 'static

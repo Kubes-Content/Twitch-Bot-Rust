@@ -1,8 +1,9 @@
-use crate::logger::Logger;
-use crate::irc::response_context::ResponseContext;
 use std::collections::HashMap;
-use crate::irc::twitch_user_message::TwitchIrcUserMessage;
+
+use crate::irc::response_context::ResponseContext;
 use crate::irc::traits::message_parser::MessageParser;
+use crate::irc::twitch_user_message::TwitchIrcUserMessage;
+use crate::logger::Logger;
 
 
 pub trait IrcMessageParser<TLogger> : MessageParser<TLogger>

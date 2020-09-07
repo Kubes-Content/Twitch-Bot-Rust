@@ -1,14 +1,16 @@
-use crate::user::user_properties::{UserId, UserLogin, UserDisplayName, UserType, UserBroadcasterType, UserDescription, UserProfileImageUrlFormat, UserOfflineImageUrlFormat, UserViewCount, UserEmail};
+use std::str::FromStr;
+
+use reqwest::Client;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+
+use crate::json::crawler::crawl_json;
 use crate::json::crawler::json_object::JsonObject;
 use crate::json::crawler::json_property_key::JsonPropertyKey;
-use crate::json::crawler::property_type::PropertyType;
-use crate::user::oauth_token::OauthToken;
-use reqwest::{Client};
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use crate::json::crawler::crawl_json;
-use crate::logger::Logger;
 use crate::json::crawler::json_property_value::JsonPropertyValue;
-use std::str::FromStr;
+use crate::json::crawler::property_type::PropertyType;
+use crate::logger::Logger;
+use crate::user::oauth_token::OauthToken;
+use crate::user::user_properties::{UserBroadcasterType, UserDescription, UserDisplayName, UserEmail, UserId, UserLogin, UserOfflineImageUrlFormat, UserProfileImageUrlFormat, UserType, UserViewCount};
 use crate::web_requests::twitch::{request_data, TwitchRequestResponse};
 
 

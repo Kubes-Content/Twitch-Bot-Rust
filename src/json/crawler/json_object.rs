@@ -1,7 +1,8 @@
 use std::collections::HashMap;
+use std::str::FromStr;
+
 use crate::json::crawler::json_property_key::JsonPropertyKey;
 use crate::json::crawler::json_property_value::JsonPropertyValue;
-use std::str::FromStr;
 use crate::json::crawler::property_type::PropertyType;
 
 
@@ -125,9 +126,8 @@ impl JsonObject {
         out_value.clone()
     }
 
-    pub fn get_object_property(&self, key: JsonPropertyKey) -> JsonObject {
-        self.get_property_value_copy(key)
-            .get_object_value()
+    pub fn get_object_property(&self, key: String) -> JsonObject {
+        self.get_property_value_copy(JsonPropertyKey::new(key, PropertyType::JsonObject)).get_object_value()
     }
 
     pub fn get_nullable_object_property(&self, key:String) -> Option<JsonObject> {

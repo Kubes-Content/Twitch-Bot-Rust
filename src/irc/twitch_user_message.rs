@@ -1,5 +1,6 @@
 use crate::user::user_properties::UserLogin;
 
+
 #[derive(Clone)]
 pub struct TwitchIrcUserMessage {
     speaker:UserLogin,

@@ -1,12 +1,12 @@
-use crate::{json::crawler::crawl_json};
 use std::collections::HashMap;
-use crate::json::crawler::json_property_key::JsonPropertyKey;
-use crate::json::crawler::property_type::PropertyType;
-use crate::save_data::default::Serializable;
-use crate::json::crawler::json_property_value::JsonPropertyValue;
 use std::fs::File;
 use std::io::{Read, Write};
-use crate::user::user_properties::{UserId};
+
+use crate::{json::crawler::crawl_json};
+use crate::json::crawler::json_property_key::JsonPropertyKey;
+use crate::json::crawler::json_property_value::JsonPropertyValue;
+use crate::save_data::default::Serializable;
+use crate::user::user_properties::UserId;
 
 
 #[derive(Default)]
@@ -44,7 +44,7 @@ impl Serializable for CustomCommandsSaveData {
     fn from_json(json: String) -> Self {
         let json = crawl_json(json.as_str());
 
-        let commands_hashmap_json = json.get_object_property(JsonPropertyKey::new("custom_commands".to_string(), PropertyType::Invalid));
+        let commands_hashmap_json = json.get_object_property("custom_commands".to_string());
 
         let custom_commands = {
             let mut hashmap:HashMap<String,String> = HashMap::new();

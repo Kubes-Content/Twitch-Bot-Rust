@@ -1,6 +1,8 @@
-use crate::credentials;
 use credentials::client_id::ClientId;
 use credentials::client_secret::ClientSecret;
+
+use crate::credentials;
+
 
 pub const REDIRECT_URI:&str = "http://127.0.0.1:7878/";//"https://twitchapps.com/tokengen/";
 

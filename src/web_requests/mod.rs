@@ -1,17 +1,18 @@
 // use callbacks instead of passing in junk
 extern crate reqwest;
 
+use crate::logger::Logger;
+
+use self::reqwest::{Client, Error, RequestBuilder, Response};
+use self::reqwest::header::HeaderMap;
+
+
 pub mod header;
 pub mod twitch;
 
-use self::reqwest::header::{HeaderMap};
-use self::reqwest::{Response, RequestBuilder, Client, Request, Error};
-use crate::logger::Logger;
-use std::net::Incoming;
-
 
 pub async fn post_request(client:&reqwest::Client, url_string:&str, headers:HeaderMap) -> Response {
-   for attempt in 1..4 {
+   for _attempt in 1..4 {
       match submit_request_builder(client, client.post(url_string.clone()), headers.clone(), 3).await {
          Ok(response) => {
             return response;
@@ -25,7 +26,7 @@ pub async fn post_request(client:&reqwest::Client, url_string:&str, headers:Head
 }
 
 pub async fn request(client:&reqwest::Client, url_string:&str, headers:HeaderMap) -> Response {
-   for attempt in 1..4 {
+   for _attempt in 1..4 {
       match submit_request_builder(client, client.get(url_string.clone()), headers.clone(), 3).await {
          Ok(response) => {
             return response;

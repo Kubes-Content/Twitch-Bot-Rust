@@ -1,13 +1,14 @@
-use crate::json::crawler::{reading_objects::traits::reading_object::{IReadingObjectBase, IReadingObject, initialize_interface},
-                           property_type::PropertyType,
+use crate::json::crawler::{json_object::JsonObject,
                            json_property_key::JsonPropertyKey,
                            json_property_value::JsonPropertyValue,
+                           property_type::PropertyType,
                            reading_objects::readable_type::ReadableType,
+                           reading_objects::reading_object::ReadingObject,
                            reading_objects::reading_property_key::ReadingPropertyKey,
                            reading_objects::reading_property_value::ReadingPropertyValue,
-                           reading_objects::reading_object::ReadingObject,
-                           json_object::JsonObject
+                           reading_objects::traits::reading_object::{initialize_interface, IReadingObject, IReadingObjectBase}
 };
+
 
 pub struct Scope {
     pub debug_string: String,

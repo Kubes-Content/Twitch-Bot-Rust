@@ -1,10 +1,10 @@
-use crate::user::user_properties::{UserId, UserLogin};
-use crate::irc::parsers::pubsub::event::channel_points_event::reward_signature::{RewardSignature, ImageUrlSignature};
-use crate::json::crawler::json_object::JsonObject;
-use crate::json::crawler::json_property_key::JsonPropertyKey;
-use crate::json::crawler::property_type::PropertyType;
-use url::Url;
 use std::str::FromStr;
+
+use url::Url;
+
+use crate::irc::parsers::pubsub::event::channel_points_event::reward_signature::{ImageUrlSignature, RewardSignature};
+use crate::json::crawler::json_object::JsonObject;
+use crate::user::user_properties::{UserId, UserLogin};
 
 
 pub mod reward_signature;
@@ -24,10 +24,10 @@ impl ChannelPointsEvent {
     pub fn from_json(event_object:JsonObject) -> ChannelPointsEvent {
         let timestamp = event_object.get_string_property_value("timestamp".to_string());
 
-        let redemption_object = event_object.get_object_property(JsonPropertyKey::new("redemption".to_string(), PropertyType::JsonObject));
+        let redemption_object = event_object.get_object_property("redemption".to_string());
         let redemption_id = redemption_object.get_string_property_value("id".to_string());
 
-        let redemption_user_object = redemption_object.get_object_property(JsonPropertyKey::new("user".to_string(), PropertyType::JsonObject));
+        let redemption_user_object = redemption_object.get_object_property("user".to_string());
         let redemption_user_id = UserId::new(redemption_user_object.get_u32_property_value("id".to_string()));
         let redemption_user_login = UserLogin::new(redemption_user_object.get_string_property_value("login".to_string()));
         let redemption_user_display_name = redemption_user_object.get_string_property_value("display_name".to_string());
@@ -36,7 +36,7 @@ impl ChannelPointsEvent {
         let channel_id = UserId::new(redemption_object.get_u32_property_value("channel_id".to_string()));
         let redeemed_at = redemption_object.get_string_property_value("redeemed_at".to_string());
 
-        let reward_object = redemption_object.get_object_property(JsonPropertyKey::new("reward".to_string(), PropertyType::JsonObject));
+        let reward_object = redemption_object.get_object_property("reward".to_string());
         let reward_id = reward_object.get_string_property_value("id".to_string());
         let reward_channel_id = UserId::new(reward_object.get_u32_property_value("channel_id".to_string()));
         let reward_title = reward_object.get_string_property_value("title".to_string());
@@ -62,7 +62,7 @@ impl ChannelPointsEvent {
                 },
             };
 
-        let reward_default_image_object = reward_object.get_object_property(JsonPropertyKey::new("default_image".to_string(), PropertyType::JsonObject));
+        let reward_default_image_object = reward_object.get_object_property("default_image".to_string());
         let reward_default_image_url_1x = Url::from_str(reward_default_image_object.get_string_property_value("url_1x".to_string()).as_str()).unwrap();
         let reward_default_image_url_2x = Url::from_str(reward_default_image_object.get_string_property_value("url_2x".to_string()).as_str()).unwrap();
         let reward_default_image_url_4x = Url::from_str(reward_default_image_object.get_string_property_value("url_4x".to_string()).as_str()).unwrap();
@@ -73,7 +73,7 @@ impl ChannelPointsEvent {
         let reward_paused:bool = reward_object.get_string_property_value("is_paused".to_string()).parse().unwrap();
         let reward_in_stock:bool = reward_object.get_string_property_value("is_in_stock".to_string()).parse().unwrap();
 
-        let reward_max_per_stream_object = reward_object.get_object_property(JsonPropertyKey::new("max_per_stream".to_string(), PropertyType::JsonObject));
+        let reward_max_per_stream_object = reward_object.get_object_property("max_per_stream".to_string());
         let reward_max_per_stream_enabled:bool = reward_max_per_stream_object.get_string_property_value("is_enabled".to_string()).parse().unwrap();
         let reward_max_per_stream_count = reward_max_per_stream_object.get_u32_property_value("max_per_stream".to_string());
 
