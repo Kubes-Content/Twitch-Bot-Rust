@@ -1,33 +1,28 @@
 extern crate futures;
 extern crate tokio;
 
-
-use std::io::{BufRead, stdin};
-use std::str::FromStr;
-use std::sync::{Arc, Mutex};
-use std::thread::sleep;
-
-use reqwest::Client;
-use tokio::time::Duration;
-use websocket::stream::sync::{TcpStream, TlsStream};
-use websocket::url::Url;
-
-use user::oauth_token::OauthToken as UserOauthToken;
-
-
 use credentials::client_id::ClientId;
-use irc_chat::channel_chatter_data::ChatterData;
-use irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
-use irc_chat::parsers::pubsub::default_message_parser::DefaultPubSubParser;
-use irc_chat::web_socket_session::WebSocketSession;
+use irc_chat::{channel_chatter_data::ChatterData,
+               parsers::{default_irc_message_parser::DefaultMessageParser,
+                         pubsub::default_message_parser::DefaultPubSubParser},
+               web_socket_session::WebSocketSession};
 use logger::{DefaultLogger, Logger};
 use oauth::has_oauth_signature::HasOauthSignature;
+use reqwest::Client;
 use secrets::{CLIENT_ID, CLIENT_SECRET};
-use user::oauth_token::OauthToken;
-use user::user_data::Data as UserData;
-use user::user_properties::UserLogin;
-use std::time::Instant;
-use std::convert::TryFrom;
+use std::{convert::TryFrom,
+          str::FromStr,
+          sync::{Arc,
+                 Mutex},
+          thread::sleep,
+          time::Instant};
+use tokio::time::Duration;
+use user::{oauth_token::OauthToken as UserOauthToken,
+           user_data::Data as UserData,
+           user_properties::UserLogin};
+use websocket::{stream::sync::{TcpStream,
+                               TlsStream},
+                url::Url};
 
 
 #[macro_use]
@@ -64,19 +59,17 @@ pub mod macros {
     }
 }
 
-pub mod irc_chat;
 pub mod credentials;
-pub mod json;
 pub mod debug;
-pub mod user;
+pub mod irc_chat;
+pub mod json;
+pub mod logger;
 pub mod oauth;
 pub mod save_data;
+pub mod secrets;
+pub mod user;
 pub mod utilities;
 pub mod web_requests;
-
-pub mod logger;
-
-pub mod secrets;
 
 
 #[tokio::main]
@@ -85,21 +78,29 @@ async fn main() {
     let (token,
         user) = init_token_and_user(&DefaultLogger {}).await;
 
-    //start_chat_session(&token, &user).await;
+    //start_chat_session(token.clone(), user.clone()).await;
 
+    start_pubsub_session(token.clone(), user.clone()).await;
+
+    tick(token, user, 1000).await;
+}
+
+
+async fn start_pubsub_session(token: UserOauthToken, user: UserData) {
     let pubsub_url = {
-      match Url::from_str("wss://pubsub-edge.twitch.tv") {
-          Ok(url) => { url },
-          Err(e) => { panic!("Could not generate PubSub url. ERROR: {}", e) },
-      }
+        match Url::from_str("wss://pubsub-edge.twitch.tv") {
+            Ok(url) => { url },
+            Err(e) => { panic!("Could not generate PubSub url. ERROR: {}", e) },
+        }
     };
-    // create PubSub-WebSocket
-    let pubsub_session = WebSocketSession::new(user.clone(), token.clone(), DefaultPubSubParser::new(), DefaultLogger{}, pubsub_url);
-
+// create PubSub-WebSocket
+    let pubsub_session = WebSocketSession::new(user.clone(), token.clone(), DefaultPubSubParser::new(), DefaultLogger {}, pubsub_url);
     let pubsub_arc = Arc::new(Mutex::new(pubsub_session));
+
     let temp_channel_id = user.clone().get_user_id().get_value();
     let temp_oauth = token.clone().get_oauth_signature().get_value();
-    let on_pubsub_start = move | session:&mut WebSocketSession<DefaultPubSubParser,DefaultLogger>, listener:&mut websocket::sync::Client<TlsStream<TcpStream>> | {
+    //
+    let on_pubsub_start = move |session: &mut WebSocketSession<DefaultPubSubParser, DefaultLogger>, listener: &mut websocket::sync::Client<TlsStream<TcpStream>>| {
         session.send_string(listener, format!("{{\
         \"type\": \"LISTEN\",\
         \"nonce\": \"333\",\
@@ -111,30 +112,12 @@ async fn main() {
         }}
         }}", temp_channel_id, temp_oauth));
     };
-
-    WebSocketSession::initialize(pubsub_arc.clone(), on_pubsub_start).await;
-
-
-    let reqwest_client = reqwest::Client::builder().build().unwrap();
-    let client_user = user.get_login();
-
-    sleep(Duration::from_millis(1000));
-    loop {
-        let before_tick_instant = Instant::now();
-
-        tick(&reqwest_client, client_user.clone()).await;
-
-        let tick_elapsed_time = {
-            match u64::try_from(before_tick_instant.elapsed().as_millis()) {
-                Ok(new64) => { if new64 > 999 { 999 } else { new64 } }, Err(_) => { 999 },
-            }
-        };
-
-        sleep(Duration::from_millis(1000-tick_elapsed_time));
-    }
+    //
+    WebSocketSession::initialize(pubsub_arc, on_pubsub_start).await;
 }
 
-async fn start_chat_session(token: &OauthToken, user: &UserData) {
+
+async fn start_chat_session(token: UserOauthToken, user: UserData) {
 // params
     let chat_url = {
         match websocket::url::Url::from_str("ws://IRC-ws.chat.twitch.tv:80") {
@@ -165,7 +148,7 @@ async fn start_chat_session(token: &OauthToken, user: &UserData) {
 }
 
 
-async fn init_token_and_user<TLogger>(logger:&TLogger) -> (OauthToken, UserData)
+async fn init_token_and_user<TLogger>(logger:&TLogger) -> (UserOauthToken, UserData)
     where TLogger: Logger {
 
 
@@ -191,16 +174,38 @@ async fn init_token_and_user<TLogger>(logger:&TLogger) -> (OauthToken, UserData)
     (token, user_data)
 }
 
-async fn tick(reqwest_client:&reqwest::Client, client_user:UserLogin) {
+
+async fn tick(token: UserOauthToken, user: UserData, tick_rate:u64) {
+
+    let reqwest_client = reqwest::Client::builder().build().unwrap();
+    let client_user = user.get_login();
+    sleep(Duration::from_millis(1000));
+    loop {
+        let before_tick_instant = Instant::now();
+
+        tick_routine(&reqwest_client, client_user.clone()).await;
+
+        let tick_elapsed_time = {
+            match u64::try_from(before_tick_instant.elapsed().as_millis()) {
+                Ok(new64) => { if new64 >= tick_rate { tick_rate - 1 } else { new64 } },
+                Err(_) => { tick_rate - 1 },
+            }
+        };
+
+        sleep(Duration::from_millis(tick_rate - tick_elapsed_time));
+    }
+}
+//
+async fn tick_routine(reqwest_client:&reqwest::Client, client_user:UserLogin) {
 
     let chatter_data = ChatterData::from_channel(reqwest_client, client_user).await;
+
     for viewer in chatter_data.get_all_viewers(true, true) {
         println!("Tick sees viewer: {}", viewer.get_value());
     }
-
 }
 
-pub fn get_input_from_console(heading:&str) -> String {
+/*pub fn get_input_from_console(heading:&str) -> String {
     println!();
     println!("*****************************************************");
     println!("{}", heading);
@@ -208,4 +213,4 @@ pub fn get_input_from_console(heading:&str) -> String {
     let value = stdin.lock().lines().next().unwrap().unwrap();
 
     value
-}
+}*/
