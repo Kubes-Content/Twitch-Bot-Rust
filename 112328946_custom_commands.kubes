@@ -1,1 +1,1 @@
-{"custom_commands":{"shoo":"Go away.","stuff":"say stuff"}}
+{"custom_commands":{"stuff":"say stuff","shoo":"Go away.","project":"Currently working on a Twitch bot made from scratch in Rust... how can you read this right now...?"}}

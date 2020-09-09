@@ -13,7 +13,7 @@ pub mod twitch;
 
 pub async fn post_request(client:&reqwest::Client, url_string:&str, headers:HeaderMap) -> Response {
    for _attempt in 1..4 {
-      match submit_request_builder(client, client.post(url_string.clone()), headers.clone(), 3).await {
+      match submit_request_builder(client, client.post(url_string.clone()), headers.clone()).await {
          Ok(response) => {
             return response;
          },
@@ -27,7 +27,7 @@ pub async fn post_request(client:&reqwest::Client, url_string:&str, headers:Head
 
 pub async fn request(client:&reqwest::Client, url_string:&str, headers:HeaderMap) -> Response {
    for _attempt in 1..4 {
-      match submit_request_builder(client, client.get(url_string.clone()), headers.clone(), 3).await {
+      match submit_request_builder(client, client.get(url_string.clone()), headers.clone()).await {
          Ok(response) => {
             return response;
          },
@@ -40,11 +40,11 @@ pub async fn request(client:&reqwest::Client, url_string:&str, headers:HeaderMap
    panic!("GET-REQUEST FAILED AFTER 3 ATTEMPTS")
 }
 
-async fn submit_request_builder(client:&Client, request_builder:RequestBuilder, headers:HeaderMap, attempts:u8) -> Result<Response,Error> {
-   submit_request(client, request_builder.headers(headers), attempts).await
+async fn submit_request_builder(client:&Client, request_builder:RequestBuilder, headers:HeaderMap) -> Result<Response,Error> {
+   submit_request(client, request_builder.headers(headers)).await
 }
 
-async fn submit_request(client:&Client, request_builder:RequestBuilder, attempts:u8) -> Result<Response,Error> {
+async fn submit_request(client:&Client, request_builder:RequestBuilder) -> Result<Response,Error> {
    match request_builder.build() {
       Ok(request) => {
          client.execute(request).await

@@ -1,8 +1,4 @@
-use std::collections::hash_map::RandomState;
-use std::collections::HashMap;
-use std::string::ToString;
 
-use crate::irc_chat::chat_message_parser::IrcMessageParser;
 use crate::irc_chat::commands::add_custom_text_command::add_custom_text_command;
 use crate::irc_chat::commands::all_commands::all_commands;
 use crate::irc_chat::commands::flipcoin::flipcoin;
@@ -18,16 +14,24 @@ use crate::logger::Logger;
 use crate::save_data::default::custom_commands_save_data::CustomCommandsSaveData;
 use crate::user::user_properties::UserLogin;
 use crate::utilities::string_ext::{BeginsWith, Remove};
+use crate::irc_chat::commands::lurk::enter_lurk;
+use std::collections::hash_map::RandomState;
+use std::collections::HashMap;
+use std::future::Future;
+use std::string::ToString;
+use async_trait::async_trait;
+use tokio::time::{delay_for, Duration};
+
 
 macro_rules! user_command_type {
-    () => { fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger) };
+    () => { fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger) -> Box<dyn Future<Output=()> + Unpin + Send> };
 }
 
 #[derive(Clone, Default)]
 pub struct DefaultMessageParser<TLogger>
     where TLogger: Logger + Clone {
-    user_commands: HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger)>,
-    user_commands_alternate_keywords: HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger)>
+    user_commands: HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger) -> Box<dyn Future<Output=()> + Unpin + Send>>,
+    user_commands_alternate_keywords: HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger) -> Box<dyn Future<Output=()> + Unpin + Send>>
 }
 
 unsafe impl<TLogger> Send for DefaultMessageParser<TLogger>
@@ -36,76 +40,71 @@ unsafe impl<TLogger> Send for DefaultMessageParser<TLogger>
 unsafe impl<TLogger> Sync for DefaultMessageParser<TLogger>
     where TLogger: Logger + Clone {}
 
+#[async_trait]
 impl<TLogger> MessageParser<TLogger> for DefaultMessageParser<TLogger>
     where TLogger: Logger + Clone {
-    fn process_response(&self, context:&mut ResponseContext, logger:&TLogger) -> bool {
+    async fn process_response(&self, context:&mut ResponseContext, logger:&TLogger) -> bool {
+        {
+            let response_received = context.get_initial_response().clone();
 
-        let response_received = context.get_initial_response().clone();
+            let mut deconstructing_response = response_received.clone();
 
-        let mut deconstructing_response = response_received.clone();
+            const TMI_TWITCH: &str = ":tmi.twitch.tv ";
 
-        const TMI_TWITCH:&str = ":tmi.twitch.tv ";
+            if response_received.begins_with(TMI_TWITCH) {
+                deconstructing_response = deconstructing_response.remove_within(TMI_TWITCH);
 
-        if response_received.begins_with(TMI_TWITCH) {
-
-            deconstructing_response = deconstructing_response.remove_within(TMI_TWITCH);
-
-            match &deconstructing_response[..3] {
-                "001" => {/*Welcome, GLHF*/}
-                "002" => {/*Your host is tmi.twitch.tv*/}
-                "003" => {/*This server is rather new*/}
-                "004" => {/*-*/}
-                "372" => {/*You are in a maze of twisty passages, all alike.*/}
-                "375" => {/*-*/}
-                "376" => {/*>*/}
-                "421" => {/* Unknown command */}
-                _ => { println!("IRC parser Not aware of Twitch-code {0} for line: {1}", deconstructing_response[..3].to_string(), response_received); }
-            }
-
-        } else if response_received.begins_with("PING ") {
-            context.add_response_to_reply_with(String::from("PONG :tmi.twitch.tv"));
-        } else {
-
-            if let Some(message) = self.decipher_response_message(context, logger) {
-                match message {
-                    TwitchIrcMessageType::Client => {
-                        //println!("Client message...");
-                    }
-                    TwitchIrcMessageType::Message (message) => {
-                        if self.try_execute_command(message, context, logger) {
-                            return true;
+                match &deconstructing_response[..3] {
+                    "001" => { /*Welcome, GLHF*/ }
+                    "002" => { /*Your host is tmi.twitch.tv*/ }
+                    "003" => { /*This server is rather new*/ }
+                    "004" => { /*-*/ }
+                    "372" => { /*You are in a maze of twisty passages, all alike.*/ }
+                    "375" => { /*-*/ }
+                    "376" => { /*>*/ }
+                    "421" => { /* Unknown command */ }
+                    _ => { println!("IRC parser Not aware of Twitch-code {0} for line: {1}", deconstructing_response[..3].to_string(), response_received); }
+                }
+            } else if response_received.begins_with("PING ") {
+                context.add_response_to_reply_with(String::from("PONG :tmi.twitch.tv"));
+            } else {
+                if let Some(message) = self.decipher_response_message(context, logger).await {
+                    match message {
+                        TwitchIrcMessageType::Client => {
+                            //println!("Client message...");
+                        }
+                        TwitchIrcMessageType::Message(message) => {
+                            if self.try_execute_command(message, context, logger).await {
+                                return true;
+                            }
+                        }
+                        TwitchIrcMessageType::JoiningChannel { joiner, channel } => {
+                            println!("({0}'s channel): {1} has JOINED the channel!", channel.get_value(), joiner.get_value());
+                        }
+                        TwitchIrcMessageType::LeavingChannel { leaver, channel } => {
+                            println!("({0}'s channel): {1} has LEFT the channel!", channel.get_value(), leaver.get_value());
                         }
                     }
-                    TwitchIrcMessageType::JoiningChannel {joiner, channel} => {
-                        println!("({0}'s channel): {1} has JOINED the channel!", channel.get_value(), joiner.get_value());
-                    }
-                    TwitchIrcMessageType::LeavingChannel {leaver, channel} => {
-                        println!("({0}'s channel): {1} has LEFT the channel!", channel.get_value(), leaver.get_value());
-                    }
+                } else {
+                    println!("IF THIS ISNT A USER MESSAGE.... WTF IS IT??")
                 }
-            } else {
-                println!("IF THIS ISNT A USER MESSAGE.... WTF IS IT??")
             }
+            true
         }
-        true
     }
 
-}
-
-impl<TLogger> IrcMessageParser<TLogger> for DefaultMessageParser<TLogger>
-    where TLogger: Logger + Clone {
-
-    fn get_user_commands(&self) -> HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger)> {
-        self.user_commands.clone()
-    }
-
-    fn get_user_commands_including_alternates(&self) -> (HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger), RandomState>, HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger), RandomState>) {
-        (self.user_commands.clone(), self.user_commands_alternate_keywords.clone())
-    }
 }
 
 impl<TLogger> DefaultMessageParser<TLogger>
     where TLogger: Logger + Clone {
+
+    pub fn get_user_commands(&self) -> HashMap<String, user_command_type!()> {
+        self.user_commands.clone()
+    }
+
+    pub fn get_user_commands_including_alternates(&self) -> (HashMap<String, user_command_type!(), RandomState>, HashMap<String, user_command_type!(), RandomState>) {
+        (self.user_commands.clone(), self.user_commands_alternate_keywords.clone())
+    }
 
     pub fn new() ->DefaultMessageParser<TLogger> {
         let mut new = DefaultMessageParser { user_commands: Default::default(), user_commands_alternate_keywords: Default::default() };
@@ -118,6 +117,7 @@ impl<TLogger> DefaultMessageParser<TLogger>
         self.add_command("addcommand", vec!["newcommand"], add_custom_text_command);
         self.add_command("commands", vec!["allcommands"], all_commands);
         self.add_command("flipcoin", vec!["5050", "50-50"], flipcoin);
+        self.add_command("lurk", vec!["afk"], enter_lurk);
         self.add_command("random", vec!["select"], random_selection);
         self.add_command("shoutout", vec!["so"], shoutout);
         self.add_command("socials", vec!["social"], socials)
@@ -132,7 +132,7 @@ impl<TLogger> DefaultMessageParser<TLogger>
     }
 
     // decipher for any message returned to our IrcChatSession
-    fn decipher_response_message(&self, context:&mut ResponseContext, logger:&TLogger) -> Option<TwitchIrcMessageType>{
+    async fn decipher_response_message(&self, context:&mut ResponseContext, logger:&TLogger) -> Option<TwitchIrcMessageType>{
 
         if ! context.get_initial_response().begins_with(":") { return None; }
 
@@ -229,7 +229,7 @@ impl<TLogger> DefaultMessageParser<TLogger>
         }
     }
 
-    fn try_execute_command(&self, message:TwitchIrcUserMessage, context:&mut ResponseContext, logger:&TLogger) -> bool {
+    async fn try_execute_command(&self, message:TwitchIrcUserMessage, context:&mut ResponseContext, logger:&TLogger) -> bool {
 
         let channel_id = {
             if message.get_target_channel() != context.get_client_user().get_login() {
@@ -259,13 +259,13 @@ impl<TLogger> DefaultMessageParser<TLogger>
 
         // try to trigger command
         if let Some(command_func) = self.user_commands.clone().get(command) {
-            command_func(DefaultMessageParser::clone(&self), message.clone(), command_args, context, logger);
+            command_func(DefaultMessageParser::clone(&self), message.clone(), command_args, context, logger).await;
 
             println!("{0} triggered !{1}.", message.get_speaker().get_value(), command);
 
             return true;
         } else if let Some(command_func) = self.user_commands_alternate_keywords.clone().get(command) {
-            command_func(self.clone(), message.clone(), command_args, context, logger);
+            command_func(self.clone(), message.clone(), command_args, context, logger).await;
 
             println!("{0} triggered !{1}.", message.get_speaker().get_value(), command);
 

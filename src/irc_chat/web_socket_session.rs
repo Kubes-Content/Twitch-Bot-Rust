@@ -1,10 +1,10 @@
 use std::ops::Deref;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard, TryLockError};
 use std::thread::sleep;
 use std::time::Instant;
 
-use tokio::time::Duration;
-use websocket::{ClientBuilder, Message, WebSocketError};
+use tokio::time::{Duration, delay_for};
+use websocket::{ClientBuilder, Message, WebSocketError, OwnedMessage, WebSocketResult};
 use websocket::client::sync::Client;
 use websocket::url::Url;
 use websocket::websocket_base::stream::sync::{TcpStream, TlsStream};
@@ -16,6 +16,11 @@ use crate::logger::Logger;
 use crate::user::oauth_token::OauthToken as UserOauthToken;
 use crate::user::user_data::Data as UserData;
 use crate::user::user_properties::UserLogin;
+use futures::executor::block_on;
+use std::process::Output;
+use std::future::Future;
+use std::pin::Pin;
+use futures::FutureExt;
 
 
 pub struct WebSocketSession<TParser, TLogger>
@@ -48,7 +53,7 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
 
     // Init
     //
-    pub async fn initialize<TOnStartFunction>(self_arc:Arc<Mutex<Self>>, on_start_function:TOnStartFunction)
+    pub async fn initialize<TOnStartFunction>(self_arc:Arc<tokio::sync::Mutex<Self>>, on_start_function:TOnStartFunction)
         where TOnStartFunction: FnOnce(&mut Self, &mut Client<TlsStream<TcpStream>>) {
 
 
@@ -61,7 +66,7 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
         {
             let local_arc = self_arc;
 
-            let local_mutex = local_arc.deref().lock().unwrap();
+            let local_mutex = local_arc.deref().lock().await;
             let mut self_ref = local_mutex;
 
             url = self_ref.irc_url.clone();
@@ -71,59 +76,154 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
         }
 
         // listen thread
-        tokio::task::spawn_blocking(move || {
+        tokio::task::spawn(async move {
 
             println!("start listen");
 
             let self_arc = self_arc1.clone();
 
-            let mut irc_listener = irc_listener;
+            let mut irc_listener = Arc::new(tokio::sync::Mutex::new(irc_listener));
 
             sleep(Duration::from_millis(2));
 
             loop {
-                println!("lsiten outer");
+                println!("listen outer");
 
 
-                WebSocketSession::listen(self_arc.clone(), &mut irc_listener);
 
-
-                println!("Listen thread sleeping for 2ms");
-                sleep(Duration::from_millis(2));
+                WebSocketSession::listen(self_arc.clone(), irc_listener.clone()).await;
             }
         });
     }
     //
-    fn listen(self_arc:Arc<Mutex<Self>>, irc_listener:&mut Client<TlsStream<TcpStream>>) {
+    async fn listen(self_arc:Arc<tokio::sync::Mutex<Self>>, irc_listener:Arc<tokio::sync::Mutex<Client<TlsStream<TcpStream>>>>) {
 
-       println!("listen waiting for message...");
+        println!("listen inner");
 
-        // get received data as a &str
-        let received_result = irc_listener.recv_message();
-        {
-            if received_result.is_err() {
-                let error = received_result.unwrap_err();
-                match error {
-                    WebSocketError::NoDataAvailable => {}
-                    _ => {
-                        println!("IRC client received the error: {}", error.to_string().as_str());
-                    }
+        let received_result_arc = Arc::new(Mutex::new(None));
+
+        let received_result_arc_local = received_result_arc.clone();
+
+        let self_arc_local = self_arc.clone();
+
+        let irc_local = irc_listener.clone();
+
+        // message retrieval requires blocking
+        tokio::task::spawn_blocking( move || {
+
+            let received_result_arc = received_result_arc.clone();
+            let irc_listener = irc_listener.clone();
+            {
+                match self_arc.try_lock() {
+                    Ok(local_mutex) => {
+                        println!("listen waiting for message...");
+
+                        //let mut irc_listener = ClientBuilder::from_url(&local_mutex.irc_url).connect_secure(None).unwrap();
+
+
+
+
+                        match received_result_arc.try_lock() {
+                            Ok(mut received_result) => {
+                                // get received data as a &str
+
+                                match irc_listener.try_lock() {
+                                    Ok(mut irc_mutex) => {
+                                        *received_result = Some(irc_mutex.recv_message());
+
+                                    }
+                                    Err(e) => {
+                                        panic!("Could not lock irc! ERROR: {}", e);
+                                    }
+                                }
+
+
+
+                                match received_result.as_ref().clone().unwrap() {
+                                    Ok(msg) => { println!("received message!") },
+                                    Err(e) => {
+                                        match e {
+                                            WebSocketError::NoDataAvailable => {},
+                                            _ => {
+                                                println!("IRC client received the error: {}", e);
+                                            }
+                                        }
+                                        return;
+                                    },
+                                }
+                            },
+                            Err(e) => { panic!("Could not lock received_result {}", e); },
+                        }
+
+                    },
+                    Err(e) => {
+                        panic!("Could not lock self ERROR: {}", e);
+                    },
                 }
-                return;
             }
-        }
-        println!("listen received message.");
-        let received_msg = received_result.unwrap();
-        let received_data = received_msg.take_payload();
-        let received_string = String::from_utf8(received_data).unwrap();
+        });
 
-        {
+        // wait for retrieval
+        delay_for(Duration::from_millis(1)).await;
+
+
+        let received_result_arc = received_result_arc_local;
+        let self_arc = self_arc_local;
+
+        let mut is_blocking = true;
+        while is_blocking {
+
+            delay_for(Duration::from_millis(1)).await;
+
             match self_arc.try_lock() {
-                Ok(local_mutex) => { local_mutex.register_received_data(irc_listener, received_string.as_str()); },
-                Err(e) => { panic!("Could not register message '{0}' ERROR: {1}", received_string, e); },
+                Err(blocking) => {
+                    println!("Waiting for message to be received...");
+                }
+                _ => {
+                    is_blocking = false;
+                }
             }
         }
+
+        let mut received_string = String::new();
+
+        match received_result_arc.clone().try_lock() {
+            Ok(received_result) => {
+                println!("listen received message.");
+
+                let received_msg_result = received_result.as_ref().clone().unwrap().as_ref();
+
+                if received_msg_result.is_err()
+                    && match received_msg_result.unwrap_err() {
+                    WebSocketError::NoDataAvailable => {
+                        return;
+                    }
+                    _ => { false }
+                }
+                {
+                    return;
+                }
+
+                let received_msg = received_msg_result.unwrap().clone();
+                let received_data = received_msg.take_payload();
+                received_string = String::from_utf8(received_data).unwrap();
+
+            },
+            Err(e) => {
+                panic!("Could not lock received result. ERRORL: {}", e)
+            },
+        }
+
+        match self_arc.try_lock() {
+            Ok(local_mutex) => {
+                //let mut irc_listener = ClientBuilder::from_url(&local_mutex.irc_url).connect_secure(None).unwrap();
+                let f = local_mutex.register_received_data(irc_local, received_string.as_str()).await;
+            }
+            Err(e) => { panic!("Could not register message '{0}' ERROR: {1}", received_string, e); },
+        }
+
         println!("RCVD: {}", received_string);
+
     }
 
     pub fn send_string(&self, irc_dispatcher:&mut Client<TlsStream<TcpStream>>, data_to_send: String) {
@@ -134,7 +234,7 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
         }
     }
 
-    fn register_received_data(&self, irc_dispatcher:&mut Client<TlsStream<TcpStream>>, received_data: &str) {
+    async fn register_received_data(&self, irc_dispatcher:Arc<tokio::sync::Mutex<Client<TlsStream<TcpStream>>>>, received_data: &str) {
         const NEW_LINE: &str = "\r\n";
 
         for line in received_data.split(NEW_LINE) {
@@ -142,17 +242,27 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
 
             self.logger.write_line(format!("RCVD: {0}", line));
 
-            self.process_response(irc_dispatcher, line.to_string());
+            self.process_response(irc_dispatcher.clone(), line.to_string()).await;
         }
+
+
+
     }
 
-    pub fn process_response (&self, irc_dispatcher:&mut Client<TlsStream<TcpStream>>, response:String) {
+    pub async fn process_response (&self, irc_dispatcher:Arc<tokio::sync::Mutex<Client<TlsStream<TcpStream>>>>, response:String) {
         let mut context = ResponseContext::new(self.client_user.clone(), response.to_string());
-        if !self.message_parser.process_response(&mut context, &self.logger) {
+        if !self.message_parser.process_response(&mut context, &self.logger).await {
             self.logger.write_line(format!("IRC PARSER FAILED TO READ LINE: {0}", response));
         } else {
-            for response_to_send in context.get_responses_to_reply_with() {
-                self.send_string(irc_dispatcher, response_to_send);
+            match irc_dispatcher.try_lock() {
+                Ok(mut irc_mutex) => {
+                    for response_to_send in context.get_responses_to_reply_with() {
+                        self.send_string(&mut irc_mutex, response_to_send);
+                    }
+                }
+                Err(e) => {
+                    panic!("Could not lock IRC, ERROR {}", e)
+                }
             }
         }
     }

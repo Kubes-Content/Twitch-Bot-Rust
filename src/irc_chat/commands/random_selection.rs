@@ -1,15 +1,16 @@
-use rand::{Rng, thread_rng};
-
-use crate::irc_chat::chat_message_parser::IrcMessageParser;
+use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
 use crate::irc_chat::commands::send_message_from_client_user_format;
 use crate::irc_chat::response_context::ResponseContext;
 use crate::irc_chat::twitch_user_message::TwitchIrcUserMessage;
 use crate::logger::Logger;
+use rand::{Rng, thread_rng};
+use std::future::Future;
+use tokio::time::delay_for;
+use std::time::Duration;
 
 
-pub fn random_selection<TParser,TLogger>(parser:TParser, message:TwitchIrcUserMessage, args:Vec<String>, context:&mut ResponseContext, logger:&TLogger)
-    where TParser: IrcMessageParser<TLogger>,
-          TLogger: Logger {
+pub fn random_selection<TLogger>(parser:DefaultMessageParser<TLogger>, message:TwitchIrcUserMessage, args:Vec<String>, context:&mut ResponseContext, logger:&TLogger) -> Box<dyn Future<Output=()> + Unpin + Send>
+    where TLogger: Logger {
     let reply_to_send = {
         let mut temp = String::new();
 
@@ -36,8 +37,7 @@ pub fn random_selection<TParser,TLogger>(parser:TParser, message:TwitchIrcUserMe
 
             if heads && tails {
                 if let Some(flipcoin_func) = parser.get_user_commands().get("flipcoin") {
-                    (*flipcoin_func)(parser, message, vec![], context, logger);
-                    return;
+                    return (*flipcoin_func)(parser, message, vec![], context, logger);
                 } else {
                     temp = String::from("Use \"!flipcoin\" instead.");
                 }
@@ -53,4 +53,6 @@ pub fn random_selection<TParser,TLogger>(parser:TParser, message:TwitchIrcUserMe
     };
 
     context.add_response_to_reply_with(send_message_from_client_user_format(message.get_target_channel(), reply_to_send));
+
+    Box::new(delay_for(Duration::from_millis(0)))
 }

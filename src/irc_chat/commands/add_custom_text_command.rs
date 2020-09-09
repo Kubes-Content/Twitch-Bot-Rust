@@ -2,20 +2,21 @@ use std::ops::Range;
 
 use crate::irc_chat::{response_context::ResponseContext,
                  twitch_user_message::TwitchIrcUserMessage};
-use crate::irc_chat::chat_message_parser::IrcMessageParser;
 use crate::irc_chat::commands::send_message_from_client_user_format;
 use crate::logger::Logger;
 use crate::save_data::default::custom_commands_save_data::CustomCommandsSaveData;
+use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
+use std::future::Future;
+use tokio::time::{delay_for, Duration};
 
 
-pub fn add_custom_text_command<TParser, TLogger>(parser: TParser, message: TwitchIrcUserMessage, args: Vec<String>, context: &mut ResponseContext, _logger: &TLogger)
-    where TParser : IrcMessageParser<TLogger>,
-          TLogger: Logger {
+pub fn add_custom_text_command<TLogger>(parser: DefaultMessageParser<TLogger>, message: TwitchIrcUserMessage, args: Vec<String>, context: &mut ResponseContext, _logger: &TLogger) -> Box<dyn Future<Output=()> + Unpin + Send>
+    where TLogger: Logger {
 
     let channel_id = {
         if message.get_target_channel() != context.get_client_user().get_login() {
             _logger.write_line("Failed to add custom command as the target channel is not the client user's.".to_string());
-            return;
+            return Box::new(delay_for(Duration::from_millis(0)));
         }
 
         context.get_client_user().get_user_id()
@@ -57,12 +58,13 @@ pub fn add_custom_text_command<TParser, TLogger>(parser: TParser, message: Twitc
         result
     };
 
-    send_message_from_client_user_format(message.get_target_channel(), return_message);
+    context.add_response_to_reply_with(send_message_from_client_user_format(message.get_target_channel(), return_message));
+
+    Box::new(delay_for(Duration::from_millis(0)))
 }
 
-fn is_built_in_command<TParser,TLogger>(parser:TParser, args: Vec<String>) -> bool
-    where TParser: IrcMessageParser<TLogger>,
-          TLogger: Logger {
+fn is_built_in_command<TLogger>(parser:DefaultMessageParser<TLogger>, args: Vec<String>) -> bool
+    where TLogger: Logger {
 
     let (commands, alternate_commands) = parser.get_user_commands_including_alternates();
 

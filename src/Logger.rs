@@ -1,4 +1,4 @@
-pub trait Logger: Sync + 'static {
+pub trait Logger: Clone + Send + Sync + 'static {
     fn write_line(&self, output:String);
 
     fn clear(&self);

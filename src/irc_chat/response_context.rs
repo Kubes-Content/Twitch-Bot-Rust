@@ -15,6 +15,8 @@ pub struct ResponseContext {
     //user_commands:user_commands_map!()
 }
 
+//unsafe impl Send for ResponseContext {}
+
 impl ResponseContext {
     pub fn new(client_data:UserData,
                response_received:String,

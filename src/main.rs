@@ -1,3 +1,4 @@
+extern crate async_trait;
 extern crate futures;
 extern crate tokio;
 
@@ -71,6 +72,7 @@ pub mod user;
 pub mod utilities;
 pub mod web_requests;
 
+const TICK_RATE:u64 = 1000;
 
 #[tokio::main]
 async fn main() {
@@ -78,24 +80,19 @@ async fn main() {
     let (token,
         user) = init_token_and_user(&DefaultLogger {}).await;
 
-    //start_chat_session(token.clone(), user.clone()).await;
+    start_chat_session(token.clone(), user.clone()).await;
 
     start_pubsub_session(token.clone(), user.clone()).await;
 
-    tick(token, user, 1000).await;
+    tick(token, user, TICK_RATE).await;
 }
 
 
 async fn start_pubsub_session(token: UserOauthToken, user: UserData) {
-    let pubsub_url = {
-        match Url::from_str("wss://pubsub-edge.twitch.tv") {
-            Ok(url) => { url },
-            Err(e) => { panic!("Could not generate PubSub url. ERROR: {}", e) },
-        }
-    };
+    let pubsub_url = Url::from_str("wss://pubsub-edge.twitch.tv").unwrap();
 // create PubSub-WebSocket
     let pubsub_session = WebSocketSession::new(user.clone(), token.clone(), DefaultPubSubParser::new(), DefaultLogger {}, pubsub_url);
-    let pubsub_arc = Arc::new(Mutex::new(pubsub_session));
+    let pubsub_arc = Arc::new(tokio::sync::Mutex::new(pubsub_session));
 
     let temp_channel_id = user.clone().get_user_id().get_value();
     let temp_oauth = token.clone().get_oauth_signature().get_value();
@@ -118,23 +115,14 @@ async fn start_pubsub_session(token: UserOauthToken, user: UserData) {
 
 
 async fn start_chat_session(token: UserOauthToken, user: UserData) {
-// params
-    let chat_url = {
-        match websocket::url::Url::from_str("ws://IRC-ws.chat.twitch.tv:80") {
-            Ok(irc_url) => {
-                irc_url
-            }
-            Err(..) => {
-                panic!("Invalid IRC URL in main.rs!")
-            }
-        }
-    };
+
+    let chat_url = websocket::url::Url::from_str("wss://irc-ws.chat.twitch.tv:443").unwrap();
 // create Chat-IRC
     let chat_session =
         WebSocketSession::new(user.clone(), token.clone(), DefaultMessageParser::new(), DefaultLogger {}, chat_url);
 //
 // run Chat-IRC
-    let chat_irc_arc = Arc::new(Mutex::new(chat_session));
+    let chat_irc_arc = Arc::new(tokio::sync::Mutex::new(chat_session));
     let token_temp = token.clone();
     let user_temp = user.clone();
     let on_chat_start = move |session: &mut WebSocketSession<DefaultMessageParser<DefaultLogger>, DefaultLogger>, listener: &mut websocket::sync::Client<TlsStream<TcpStream>>| {
@@ -175,7 +163,7 @@ async fn init_token_and_user<TLogger>(logger:&TLogger) -> (UserOauthToken, UserD
 }
 
 
-async fn tick(token: UserOauthToken, user: UserData, tick_rate:u64) {
+async fn tick(_token: UserOauthToken, user: UserData, tick_rate:u64) {
 
     let reqwest_client = reqwest::Client::builder().build().unwrap();
     let client_user = user.get_login();

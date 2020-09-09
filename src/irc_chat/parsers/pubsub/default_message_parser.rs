@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use crate::irc_chat::parsers::pubsub::event::channel_points_event::ChannelPointsEvent;
 use crate::irc_chat::response_context::ResponseContext;
 use crate::irc_chat::traits::message_parser::MessageParser;
@@ -11,9 +12,10 @@ pub struct DefaultPubSubParser
 
 }
 
+#[async_trait]
 impl<TLogger: Clone + Logger> MessageParser<TLogger> for DefaultPubSubParser
 {
-    fn process_response(&self, context: &mut ResponseContext, logger: &TLogger) -> bool {
+    async fn process_response(&self, context: &mut ResponseContext, logger: &TLogger) -> bool {
 
         let json_object = crawl_json(context.get_initial_response().as_str());
 

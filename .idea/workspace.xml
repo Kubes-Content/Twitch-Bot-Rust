@@ -13,8 +13,29 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b9eaa217-6861-4b09-a51f-c8ee22571565" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/irc_chat/commands/blame.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/irc_chat/commands/lurk.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/112328946_custom_commands.kubes" beforeDir="false" afterPath="$PROJECT_DIR$/112328946_custom_commands.kubes" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Logger.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Logger.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/chat_message_parser.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/add_custom_text_command.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/add_custom_text_command.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/all_commands.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/all_commands.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/flipcoin.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/flipcoin.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/random_selection.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/random_selection.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/shoutout.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/shoutout.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/socials.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/socials.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/default_irc_message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/default_irc_message_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/default_message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/default_message_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/response_context.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/response_context.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/traits/message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/traits/message_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/web_socket_session.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/web_socket_session.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/web_requests/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/web_requests/mod.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -39,6 +60,9 @@
     <option name="directoryName" value="PbMUUPhO" />
   </component>
   <component name="ProjectId" id="1fyToUIobpaq4hDgbdYJPmg88rJ" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="PropertiesComponent">
     <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
@@ -49,11 +73,11 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\irc_chat\traits" />
       <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\irc\parsers\pubsub\event" />
       <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\irc\parsers\pubsub" />
       <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\irc\parsers" />
       <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\irc" />
-      <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\save_data\default" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -200,11 +224,6 @@
           <url>file://$PROJECT_DIR$/src/json/crawler/json_object.rs</url>
           <line>55</line>
           <option name="timeStamp" value="103" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/irc_chat/parsers/pubsub/default_message_parser.rs</url>
-          <line>20</line>
-          <option name="timeStamp" value="132" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/irc_chat/parsers/pubsub/event/channel_points_event/mod.rs</url>
