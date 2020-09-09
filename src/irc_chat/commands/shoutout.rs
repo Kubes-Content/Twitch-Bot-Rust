@@ -6,9 +6,10 @@ use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
 use std::future::Future;
 use std::time::Duration;
 use tokio::time::delay_for;
+use std::sync::Arc;
 
 
-pub fn shoutout<TLogger>(_parser:DefaultMessageParser<TLogger>, message:TwitchIrcUserMessage, args:Vec<String>, context:&mut ResponseContext, _logger:&TLogger) -> Box<dyn Future<Output=()> + Unpin + Send>
+pub fn shoutout<TLogger>(_parser:DefaultMessageParser<TLogger>, message:TwitchIrcUserMessage, args:Vec<String>, context_mutex:Arc<tokio::sync::Mutex<ResponseContext>>, _logger:&TLogger) -> Box<dyn Future<Output=()> + Unpin + Send>
     where TLogger: Logger {
     let shoutout_reply = {
         // check if name to shoutout is missing
@@ -30,7 +31,13 @@ pub fn shoutout<TLogger>(_parser:DefaultMessageParser<TLogger>, message:TwitchIr
 
     // TODO check if user is a mod or channel owner, to allow shoutout to trigger
 
-    context.add_response_to_reply_with(send_message_from_client_user_format(message.get_target_channel(), shoutout_reply));
+
+    match context_mutex.try_lock() {
+        Ok(mut context) => {
+            context.add_response_to_reply_with(send_message_from_client_user_format(message.get_target_channel(), shoutout_reply));
+        }
+        Err(e) => { panic!("Error! : {}", e) }
+    }
 
     Box::new(delay_for(Duration::from_millis(0)))
 }

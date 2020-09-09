@@ -28,7 +28,7 @@ use websocket::{stream::sync::{TcpStream,
 
 #[macro_use]
 pub mod macros {
-    #[macro_export] macro_rules! primitiveWrapper {
+    #[macro_export] macro_rules! primitive_wrapper {
         ($type_name:ident, $wrapped_type:ty, $string_format:expr) => {
             #[derive(Clone)]
             pub struct $type_name {
@@ -186,11 +186,6 @@ async fn tick(_token: UserOauthToken, user: UserData, tick_rate:u64) {
 //
 async fn tick_routine(reqwest_client:&reqwest::Client, client_user:UserLogin) {
 
-    let chatter_data = ChatterData::from_channel(reqwest_client, client_user).await;
-
-    for viewer in chatter_data.get_all_viewers(true, true) {
-        println!("Tick sees viewer: {}", viewer.get_value());
-    }
 }
 
 /*pub fn get_input_from_console(heading:&str) -> String {

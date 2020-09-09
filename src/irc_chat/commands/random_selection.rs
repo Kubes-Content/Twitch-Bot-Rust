@@ -7,9 +7,10 @@ use rand::{Rng, thread_rng};
 use std::future::Future;
 use tokio::time::delay_for;
 use std::time::Duration;
+use std::sync::Arc;
 
 
-pub fn random_selection<TLogger>(parser:DefaultMessageParser<TLogger>, message:TwitchIrcUserMessage, args:Vec<String>, context:&mut ResponseContext, logger:&TLogger) -> Box<dyn Future<Output=()> + Unpin + Send>
+pub fn random_selection<TLogger>(parser:DefaultMessageParser<TLogger>, message:TwitchIrcUserMessage, args:Vec<String>, context_mutex:Arc<tokio::sync::Mutex<ResponseContext>>, logger:&TLogger) -> Box<dyn Future<Output=()> + Unpin + Send>
     where TLogger: Logger {
     let reply_to_send = {
         let mut temp = String::new();
@@ -37,7 +38,7 @@ pub fn random_selection<TLogger>(parser:DefaultMessageParser<TLogger>, message:T
 
             if heads && tails {
                 if let Some(flipcoin_func) = parser.get_user_commands().get("flipcoin") {
-                    return (*flipcoin_func)(parser, message, vec![], context, logger);
+                    return (*flipcoin_func)(parser, message, vec![], context_mutex, logger);
                 } else {
                     temp = String::from("Use \"!flipcoin\" instead.");
                 }
@@ -52,7 +53,13 @@ pub fn random_selection<TLogger>(parser:DefaultMessageParser<TLogger>, message:T
         temp
     };
 
-    context.add_response_to_reply_with(send_message_from_client_user_format(message.get_target_channel(), reply_to_send));
+    match context_mutex.try_lock() {
+        Ok(mut context) => {
+            context.add_response_to_reply_with(send_message_from_client_user_format(message.get_target_channel(), reply_to_send));
+        }
+        Err(e) => { panic!("Error! : {}", e) }
+    }
+
 
     Box::new(delay_for(Duration::from_millis(0)))
 }

@@ -21,17 +21,18 @@ use std::future::Future;
 use std::string::ToString;
 use async_trait::async_trait;
 use tokio::time::{delay_for, Duration};
+use std::sync::Arc;
 
 
 macro_rules! user_command_type {
-    () => { fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger) -> Box<dyn Future<Output=()> + Unpin + Send> };
+    () => { fn(Self, TwitchIrcUserMessage, Vec<String>, Arc<tokio::sync::Mutex<ResponseContext>>, &TLogger) -> Box<dyn Future<Output=()> + Unpin + Send> };
 }
 
 #[derive(Clone, Default)]
 pub struct DefaultMessageParser<TLogger>
     where TLogger: Logger + Clone {
-    user_commands: HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger) -> Box<dyn Future<Output=()> + Unpin + Send>>,
-    user_commands_alternate_keywords: HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &TLogger) -> Box<dyn Future<Output=()> + Unpin + Send>>
+    user_commands: HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, Arc<tokio::sync::Mutex<ResponseContext>>, &TLogger) -> Box<dyn Future<Output=()> + Unpin + Send>>,
+    user_commands_alternate_keywords: HashMap<String, fn(Self, TwitchIrcUserMessage, Vec<String>, Arc<tokio::sync::Mutex<ResponseContext>>, &TLogger) -> Box<dyn Future<Output=()> + Unpin + Send>>
 }
 
 unsafe impl<TLogger> Send for DefaultMessageParser<TLogger>
@@ -43,9 +44,16 @@ unsafe impl<TLogger> Sync for DefaultMessageParser<TLogger>
 #[async_trait]
 impl<TLogger> MessageParser<TLogger> for DefaultMessageParser<TLogger>
     where TLogger: Logger + Clone {
-    async fn process_response(&self, context:&mut ResponseContext, logger:&TLogger) -> bool {
+    async fn process_response(&self, context_mutex:Arc<tokio::sync::Mutex<ResponseContext>>, logger:&TLogger) -> bool {
         {
-            let response_received = context.get_initial_response().clone();
+            let response_received = {
+                match context_mutex.try_lock() {
+                    Ok(context) => {
+                        context.get_initial_response().clone()
+                    }
+                    Err(e) => { panic!("ERROR: {}", e) }
+                }
+            };
 
             let mut deconstructing_response = response_received.clone();
 
@@ -66,27 +74,32 @@ impl<TLogger> MessageParser<TLogger> for DefaultMessageParser<TLogger>
                     _ => { println!("IRC parser Not aware of Twitch-code {0} for line: {1}", deconstructing_response[..3].to_string(), response_received); }
                 }
             } else if response_received.begins_with("PING ") {
-                context.add_response_to_reply_with(String::from("PONG :tmi.twitch.tv"));
+                match context_mutex.try_lock() {
+                    Ok(mut context) => {
+                        context.add_response_to_reply_with(String::from("PONG :tmi.twitch.tv"));
+                    }
+                    Err(e) => { panic!("ERROR: {}", e) }
+                }
             } else {
-                if let Some(message) = self.decipher_response_message(context, logger).await {
-                    match message {
-                        TwitchIrcMessageType::Client => {
-                            //println!("Client message...");
-                        }
-                        TwitchIrcMessageType::Message(message) => {
-                            if self.try_execute_command(message, context, logger).await {
-                                return true;
+
+                match self.decipher_response_message(context_mutex.clone(), logger).await {
+                    None => { println!("IF THIS ISNT A USER MESSAGE.... WTF IS IT??") },
+                    Some(message) => {
+                        match message {
+                            TwitchIrcMessageType::Client => {
+                                //println!("Client message...");
+                            }
+                            TwitchIrcMessageType::Message(message) => {
+                                self.try_execute_command(message, context_mutex.clone(), logger).await;
+                            }
+                            TwitchIrcMessageType::JoiningChannel { joiner, channel } => {
+                                println!("({0}'s channel): {1} has JOINED the channel!", channel.get_value(), joiner.get_value());
+                            }
+                            TwitchIrcMessageType::LeavingChannel { leaver, channel } => {
+                                println!("({0}'s channel): {1} has LEFT the channel!", channel.get_value(), leaver.get_value());
                             }
                         }
-                        TwitchIrcMessageType::JoiningChannel { joiner, channel } => {
-                            println!("({0}'s channel): {1} has JOINED the channel!", channel.get_value(), joiner.get_value());
-                        }
-                        TwitchIrcMessageType::LeavingChannel { leaver, channel } => {
-                            println!("({0}'s channel): {1} has LEFT the channel!", channel.get_value(), leaver.get_value());
-                        }
-                    }
-                } else {
-                    println!("IF THIS ISNT A USER MESSAGE.... WTF IS IT??")
+                    },
                 }
             }
             true
@@ -132,29 +145,34 @@ impl<TLogger> DefaultMessageParser<TLogger>
     }
 
     // decipher for any message returned to our IrcChatSession
-    async fn decipher_response_message(&self, context:&mut ResponseContext, logger:&TLogger) -> Option<TwitchIrcMessageType>{
+    async fn decipher_response_message(&self, context_mutex:Arc<tokio::sync::Mutex<ResponseContext>>, logger:&TLogger) -> Option<TwitchIrcMessageType>{
 
-        if ! context.get_initial_response().begins_with(":") { return None; }
+        let deconstructing_response;
 
-        let deconstructing_response = {
-            let initial = context.get_initial_response()[1..].to_string();
-            let mut temp = String::new();
+        match context_mutex.try_lock() {
+            Ok(context) => {
+                if !context.get_initial_response().begins_with(":") { return None; }
 
-            // remove duplicate whitespace
-            let mut previous_character = ' ';
-            for character in initial.chars() {
+                deconstructing_response = {
+                    let initial = context.get_initial_response()[1..].to_string();
+                    let mut temp = String::new();
 
-                if character == ' ' && previous_character == ' ' {
-                    continue;
-                }
+                    // remove duplicate whitespace
+                    let mut previous_character = ' ';
+                    for character in initial.chars() {
+                        if character == ' ' && previous_character == ' ' {
+                            continue;
+                        }
 
-                temp = format!("{0}{1}", temp, character);
-                previous_character = character;
+                        temp = format!("{0}{1}", temp, character);
+                        previous_character = character;
+                    }
+
+                    temp
+                };
             }
-
-            temp
+            Err(e) => { panic!("ERROR! : {}", e) }
         };
-
 
         let mut first_username_split = deconstructing_response.split("!");
 
@@ -162,7 +180,14 @@ impl<TLogger> DefaultMessageParser<TLogger>
         let username_duplicate = first_username_split.next();//?.split("@").next()?;
         if username_duplicate == None {
             let mut client_username_split = deconstructing_response.split(".");
-            if client_username_split.next()?.to_string() != context.get_client_user().get_login().get_value() { return None; }
+
+            match context_mutex.try_lock() {
+                Ok(context) => {
+                    if client_username_split.next()?.to_string() != context.get_client_user().get_login().get_value() { return None; }
+                }
+                Err(e) => { panic!("ERROR! : {}", e) }
+            };
+
 
 
             client_username_split.next()?; // tmi
@@ -229,43 +254,54 @@ impl<TLogger> DefaultMessageParser<TLogger>
         }
     }
 
-    async fn try_execute_command(&self, message:TwitchIrcUserMessage, context:&mut ResponseContext, logger:&TLogger) -> bool {
+    async fn try_execute_command(&self, message:TwitchIrcUserMessage, context_mutex:Arc<tokio::sync::Mutex<ResponseContext>>, logger:&TLogger) -> bool {
+        let channel_id;
+        let command:String;
+        let command_args;
 
-        let channel_id = {
-            if message.get_target_channel() != context.get_client_user().get_login() {
-                logger.write_line("TRYING TO EXECUTE COMMAND IN SOMEONE ELSE'S CHANNEL.".to_string());
-                return false;
+
+        match context_mutex.try_lock() {
+            Ok(context) => {
+                channel_id = {
+                    if message.get_target_channel() != context.get_client_user().get_login() {
+                        logger.write_line("TRYING TO EXECUTE COMMAND IN SOMEONE ELSE'S CHANNEL.".to_string());
+                        return false;
+                    }
+                    context.get_client_user().get_user_id()
+                };
+
+                if message.get_message_body().chars().next().unwrap() != '!' || message.get_message_body().len() == 1 { return false; }
+
+                let message_body = message.get_message_body();
+
+                // for retrieving command and args
+                let mut whitespace_split = message_body[1..].split(" ");
+
+                let string = whitespace_split.next().unwrap().to_lowercase(); // temp to maintain lifetime
+                command = string;
+
+                command_args = {
+                    let mut temp = vec![];
+                    while let Some(arg) = whitespace_split.next() {
+                        temp.push(arg.to_string());
+                    }
+                    temp
+                };
+
+
             }
-            context.get_client_user().get_user_id()
-        };
-
-        if message.get_message_body().chars().next().unwrap() != '!' || message.get_message_body().len() == 1 { return false; }
-
-        let message_body = message.get_message_body();
-
-        // for retrieving command and args
-        let mut whitespace_split = message_body[1..].split(" ");
-
-        let string = whitespace_split.next().unwrap().to_lowercase(); // temp to maintain lifetime
-        let command = string.as_str();
-
-        let command_args:Vec<String> = {
-            let mut temp = vec![];
-            while let Some(arg) = whitespace_split.next() {
-                temp.push(arg.to_string());
-            }
-            temp
-        };
+            Err(e) => { panic!("ERROR: {}", e) }
+        }
 
         // try to trigger command
-        if let Some(command_func) = self.user_commands.clone().get(command) {
-            command_func(DefaultMessageParser::clone(&self), message.clone(), command_args, context, logger).await;
+        if let Some(command_func) = self.user_commands.clone().get(command.as_str()) {
+            command_func(DefaultMessageParser::clone(&self), message.clone(), command_args, context_mutex, logger).await;
 
             println!("{0} triggered !{1}.", message.get_speaker().get_value(), command);
 
             return true;
-        } else if let Some(command_func) = self.user_commands_alternate_keywords.clone().get(command) {
-            command_func(self.clone(), message.clone(), command_args, context, logger).await;
+        } else if let Some(command_func) = self.user_commands_alternate_keywords.clone().get(command.as_str()) {
+            command_func(self.clone(), message.clone(), command_args, context_mutex, logger).await;
 
             println!("{0} triggered !{1}.", message.get_speaker().get_value(), command);
 
@@ -274,10 +310,13 @@ impl<TLogger> DefaultMessageParser<TLogger>
 
         // try to trigger custom command
         let custom_commands = CustomCommandsSaveData::load_or_default(channel_id).get_commands();
-        if custom_commands.contains_key(command) {
-
-            context.add_response_to_reply_with(send_message_from_client_user_format(message.get_target_channel().clone(), custom_commands.get(command).unwrap().clone()));
-
+        if custom_commands.contains_key(command.as_str()) {
+            match context_mutex.try_lock() {
+                Ok(mut context_mutex) => {
+                    context_mutex.add_response_to_reply_with(send_message_from_client_user_format(message.get_target_channel().clone(), custom_commands.get(command.as_str()).unwrap().clone()));
+                }
+                Err(e) => { panic!("ERROR: {}", e) }
+            }
             println!("{0} triggered !{1}.", message.get_speaker().get_value(), command);
 
             true

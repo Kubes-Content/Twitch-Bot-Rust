@@ -8,18 +8,23 @@ use crate::save_data::default::custom_commands_save_data::CustomCommandsSaveData
 use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
 use std::future::Future;
 use tokio::time::{delay_for, Duration};
+use std::sync::Arc;
 
 
-pub fn add_custom_text_command<TLogger>(parser: DefaultMessageParser<TLogger>, message: TwitchIrcUserMessage, args: Vec<String>, context: &mut ResponseContext, _logger: &TLogger) -> Box<dyn Future<Output=()> + Unpin + Send>
+pub fn add_custom_text_command<TLogger>(parser: DefaultMessageParser<TLogger>, message: TwitchIrcUserMessage, args: Vec<String>, context_mutex:Arc<tokio::sync::Mutex<ResponseContext>>, _logger: &TLogger) -> Box<dyn Future<Output=()> + Unpin + Send>
     where TLogger: Logger {
 
     let channel_id = {
-        if message.get_target_channel() != context.get_client_user().get_login() {
-            _logger.write_line("Failed to add custom command as the target channel is not the client user's.".to_string());
-            return Box::new(delay_for(Duration::from_millis(0)));
+        match context_mutex.try_lock() {
+            Ok(context) => {
+                if message.get_target_channel() != context.get_client_user().get_login() {
+                    _logger.write_line("Failed to add custom command as the target channel is not the client user's.".to_string());
+                    return Box::new(delay_for(Duration::from_millis(0)));
+                }
+                context.get_client_user().get_user_id()
+            }
+            Err(e) => { panic!("Error! : {}", e) }
         }
-
-        context.get_client_user().get_user_id()
     };
 
     let return_message =
@@ -57,8 +62,12 @@ pub fn add_custom_text_command<TLogger>(parser: DefaultMessageParser<TLogger>, m
 
         result
     };
-
-    context.add_response_to_reply_with(send_message_from_client_user_format(message.get_target_channel(), return_message));
+    match context_mutex.try_lock() {
+        Ok(mut context) => {
+            context.add_response_to_reply_with(send_message_from_client_user_format(message.get_target_channel(), return_message));
+        }
+        Err(e) => { panic!("Error! : {}", e) }
+    }
 
     Box::new(delay_for(Duration::from_millis(0)))
 }

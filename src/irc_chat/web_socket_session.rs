@@ -177,7 +177,7 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
 
             match self_arc.try_lock() {
                 Err(blocking) => {
-                    println!("Waiting for message to be received...");
+                    //println!("Waiting for message to be received...");
                 }
                 _ => {
                     is_blocking = false;
@@ -216,7 +216,6 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
 
         match self_arc.try_lock() {
             Ok(local_mutex) => {
-                //let mut irc_listener = ClientBuilder::from_url(&local_mutex.irc_url).connect_secure(None).unwrap();
                 let f = local_mutex.register_received_data(irc_local, received_string.as_str()).await;
             }
             Err(e) => { panic!("Could not register message '{0}' ERROR: {1}", received_string, e); },
@@ -250,19 +249,28 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
     }
 
     pub async fn process_response (&self, irc_dispatcher:Arc<tokio::sync::Mutex<Client<TlsStream<TcpStream>>>>, response:String) {
-        let mut context = ResponseContext::new(self.client_user.clone(), response.to_string());
-        if !self.message_parser.process_response(&mut context, &self.logger).await {
+        let context_mutex = Arc::new(tokio::sync::Mutex::new(ResponseContext::new(self.client_user.clone(), response.to_string())));
+
+        let read_successful = {
+            self.message_parser.process_response(context_mutex.clone(), &self.logger).await
+        };
+
+
+        if !read_successful {
             self.logger.write_line(format!("IRC PARSER FAILED TO READ LINE: {0}", response));
         } else {
             match irc_dispatcher.try_lock() {
                 Ok(mut irc_mutex) => {
-                    for response_to_send in context.get_responses_to_reply_with() {
-                        self.send_string(&mut irc_mutex, response_to_send);
+                    match context_mutex.try_lock() {
+                        Ok(context) => {
+                            for response_to_send in context.get_responses_to_reply_with() {
+                                self.send_string(&mut irc_mutex, response_to_send);
+                            }
+                        }
+                        Err(e) => { panic!("ERROR! : {}", e) }
                     }
                 }
-                Err(e) => {
-                    panic!("Could not lock IRC, ERROR {}", e)
-                }
+                Err(e) => { panic!("Could not lock IRC, ERROR {}", e) }
             }
         }
     }

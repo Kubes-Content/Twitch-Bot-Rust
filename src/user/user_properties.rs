@@ -1,12 +1,12 @@
-primitiveWrapper!(UserId, u32, "(User ID: {})");
+primitive_wrapper!(UserId, u32, "(User ID: {})");
 
 impl UserId {
     pub const LENGTH:usize = 8;
 }
 
-primitiveWrapper!(UserLogin, String, "(User Login: {})");
+primitive_wrapper!(UserLogin, String, "(User Login: {})");
 
-primitiveWrapper!(UserDisplayName, String, "(User Display Name: {})");
+primitive_wrapper!(UserDisplayName, String, "(User Display Name: {})");
 
 #[derive(Clone,PartialEq)]
 pub enum UserTypeEnum {
@@ -25,7 +25,7 @@ impl ToString for UserTypeEnum {
         }.to_string()
     }
 }
-primitiveWrapper!(UserType, UserTypeEnum, "(User Type: {})");
+primitive_wrapper!(UserType, UserTypeEnum, "(User Type: {})");
 
 impl UserType {
     pub fn new_from_string(string_value:String) -> UserType {
@@ -55,7 +55,7 @@ impl ToString for UserBroadcasterTypeEnum {
     }
 }
 
-primitiveWrapper!(UserBroadcasterType, UserBroadcasterTypeEnum, "(User Broadcaster Type: {})");
+primitive_wrapper!(UserBroadcasterType, UserBroadcasterTypeEnum, "(User Broadcaster Type: {})");
 
 impl UserBroadcasterType {
     pub fn new_from_string(string_value:String) -> UserBroadcasterType  {
@@ -69,12 +69,12 @@ impl UserBroadcasterType {
     }
 }
 
-primitiveWrapper!(UserDescription, String, "(User Description: {})");
+primitive_wrapper!(UserDescription, String, "(User Description: {})");
 
-primitiveWrapper!(UserProfileImageUrlFormat, String, "(User Profile Image URL Format: {})");
+primitive_wrapper!(UserProfileImageUrlFormat, String, "(User Profile Image URL Format: {})");
 
-primitiveWrapper!(UserOfflineImageUrlFormat, String, "(User Profile Image URL Format: {})");
+primitive_wrapper!(UserOfflineImageUrlFormat, String, "(User Profile Image URL Format: {})");
 
-primitiveWrapper!(UserViewCount, u32, "(User View Count: {})");
+primitive_wrapper!(UserViewCount, u32, "(User View Count: {})");
 
-primitiveWrapper!(UserEmail, String, "(User Email: {})");
+primitive_wrapper!(UserEmail, String, "(User Email: {})");

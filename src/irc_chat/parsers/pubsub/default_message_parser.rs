@@ -5,6 +5,7 @@ use crate::irc_chat::traits::message_parser::MessageParser;
 use crate::json::crawler::crawl_json;
 use crate::logger::Logger;
 use crate::user::user_properties::UserId;
+use std::sync::Arc;
 
 
 pub struct DefaultPubSubParser
@@ -15,9 +16,16 @@ pub struct DefaultPubSubParser
 #[async_trait]
 impl<TLogger: Clone + Logger> MessageParser<TLogger> for DefaultPubSubParser
 {
-    async fn process_response(&self, context: &mut ResponseContext, logger: &TLogger) -> bool {
+    async fn process_response(&self, context_mutex:Arc<tokio::sync::Mutex<ResponseContext>>, logger: &TLogger) -> bool {
+        let json_object = {
+            match context_mutex.try_lock() {
+                Ok(context) => {
+                    crawl_json(context.get_initial_response().as_str())
+                }
+                Err(e) => { panic!("Error! : {}", e) }
+            }
+        };
 
-        let json_object = crawl_json(context.get_initial_response().as_str());
 
         // return if not a sub message
         if json_object.get_string_property_value("type".to_string()) != "MESSAGE" { return true; }
@@ -26,7 +34,14 @@ impl<TLogger: Clone + Logger> MessageParser<TLogger> for DefaultPubSubParser
         let event_outer_wrapper_object =  json_object.get_object_property("data".to_string());
         let event_topic = event_outer_wrapper_object.get_string_property_value("topic".to_string());
 
-        let client_user_id = context.get_client_user().get_user_id().get_value();
+        let client_user_id = {
+            match context_mutex.try_lock() {
+                Ok(context) => {
+                    context.get_client_user().get_user_id().get_value()
+                }
+                Err(e) => { panic!("Error! : {}", e) }
+            }
+        };
 
         match event_topic[event_topic.len()-UserId::LENGTH..event_topic.len()].parse::<u32>() {
             // prevent triggering in channels other than the client's

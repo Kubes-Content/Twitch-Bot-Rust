@@ -2,7 +2,7 @@ use reqwest::header::HeaderValue;
 
 use crate::web_requests::header::Header as WebRequestHeader;
 
-primitiveWrapper!(Signature, String, "{}");
+primitive_wrapper!(Signature, String, "{}");
 
 const AUTHORIZATION_HEADER_NAME:&str = "Authorization";
 

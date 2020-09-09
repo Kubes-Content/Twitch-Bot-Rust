@@ -13,29 +13,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b9eaa217-6861-4b09-a51f-c8ee22571565" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/irc_chat/commands/blame.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/irc_chat/commands/lurk.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/112328946_custom_commands.kubes" beforeDir="false" afterPath="$PROJECT_DIR$/112328946_custom_commands.kubes" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Logger.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Logger.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/chat_message_parser.rs" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/add_custom_text_command.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/add_custom_text_command.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/all_commands.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/all_commands.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/blame.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/blame.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/flipcoin.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/flipcoin.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/lurk.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/lurk.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/random_selection.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/random_selection.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/shoutout.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/shoutout.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/socials.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/socials.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/default_irc_message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/default_irc_message_parser.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/default_message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/default_message_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/response_context.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/response_context.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/traits/message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/traits/message_parser.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/web_socket_session.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/web_socket_session.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/web_requests/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/web_requests/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/user/oauth_token.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/oauth_token.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/user/user_properties.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/user_properties.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />

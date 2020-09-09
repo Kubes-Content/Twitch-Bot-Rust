@@ -19,7 +19,7 @@ use crate::web_requests::{is_html, is_json, post_request, request};
 use crate::web_requests::header::Header as WebRequestHeader;
 use crate::web_requests::twitch::{request_data, TwitchRequestResponse};
 
-primitiveWrapper!(OauthToken, TokenData, "{}");
+primitive_wrapper!(OauthToken, TokenData, "{}");
 
 impl Default for OauthToken {
     fn default() -> Self {
