@@ -4,7 +4,7 @@ use crate::web_requests::header::Header;
 
 // use Header
 
-#[derive(Clone)]
+#[derive(Clone, Hash)]
 pub struct ClientId{
     pub value:String,
 }

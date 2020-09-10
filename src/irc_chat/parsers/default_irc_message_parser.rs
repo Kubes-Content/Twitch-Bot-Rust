@@ -20,8 +20,8 @@ use std::collections::HashMap;
 use std::future::Future;
 use std::string::ToString;
 use async_trait::async_trait;
-use tokio::time::{delay_for, Duration};
 use std::sync::Arc;
+use crate::irc_chat::commands::blame::blame_random_user;
 
 
 macro_rules! user_command_type {
@@ -129,6 +129,7 @@ impl<TLogger> DefaultMessageParser<TLogger>
 
         self.add_command("addcommand", vec!["newcommand"], add_custom_text_command);
         self.add_command("commands", vec!["allcommands"], all_commands);
+        self.add_command("blame", vec!["scapegoat"], blame_random_user);
         self.add_command("flipcoin", vec!["5050", "50-50"], flipcoin);
         self.add_command("lurk", vec!["afk"], enter_lurk);
         self.add_command("random", vec!["select"], random_selection);

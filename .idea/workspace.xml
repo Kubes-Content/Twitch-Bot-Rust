@@ -13,21 +13,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b9eaa217-6861-4b09-a51f-c8ee22571565" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main_tick_data.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/save_data/default/user_rpg_stats.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_rpg_stats112328946-112328946.kubes" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/add_custom_text_command.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/add_custom_text_command.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/all_commands.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/all_commands.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/112328946_custom_commands.kubes" beforeDir="false" afterPath="$PROJECT_DIR$/112328946_custom_commands.kubes" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/credentials/client_id.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/credentials/client_id.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/channel_chatter_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/channel_chatter_data.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/blame.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/blame.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/flipcoin.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/flipcoin.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/lurk.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/lurk.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/random_selection.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/random_selection.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/shoutout.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/shoutout.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/socials.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/socials.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/default_irc_message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/default_irc_message_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/default_message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/default_message_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/traits/message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/traits/message_parser.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/web_socket_session.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/web_socket_session.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/json_property_value.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/json/crawler/json_property_value.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/user/oauth_token.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/oauth_token.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/oauth/token_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/oauth/token_data.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/save_data/default/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/save_data/default/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/user/user_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/user_data.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/user/user_properties.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/user_properties.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -57,6 +58,7 @@
     <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
@@ -186,6 +188,7 @@
     <option name="externalLinterArguments" value="--target=stable-x86_64-pc-windows-gnu" />
     <option name="macroExpansionEngine" value="NEW" />
     <option name="runExternalLinterOnTheFly" value="true" />
+    <option name="runRustfmtOnSave" value="true" />
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
     <option name="version" value="2" />
   </component>
@@ -210,6 +213,9 @@
       </map>
     </option>
   </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+  </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
@@ -225,10 +231,5 @@
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
-    <watches-manager>
-      <configuration name="CargoCommandRunConfiguration">
-        <watch expression="content_type_header.inner.len" />
-      </configuration>
-    </watches-manager>
   </component>
 </project>

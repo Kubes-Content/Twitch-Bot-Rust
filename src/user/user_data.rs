@@ -48,7 +48,7 @@ impl Data {
         }
     }
 
-    pub fn from_json<TLogger>(json_data_object: JsonObject, _logger: &TLogger) -> Data
+    pub fn from_json<TLogger>(json_data_object: JsonObject, _logger: &TLogger) -> Vec<Data>
         where TLogger: Logger {
         const PROPERTY_NAME_USER_ID: &str = "id";
         const PROPERTY_NAME_LOGIN: &str = "login";
@@ -61,49 +61,39 @@ impl Data {
         const PROPERTY_NAME_VIEW_COUNT: &str = "view_count";
         const PROPERTY_NAME_EMAIL: &str = "email";
 
+        let mut user_data:Vec<Data> = Vec::new();
+
         let json_object_array = json_data_object.get_non_empty_object_array_vector_property(JsonPropertyKey::new("data".to_string(), PropertyType::Invalid));
-        let json_object = json_object_array[0].clone();
 
-        let user_id = UserId::new(json_object.get_u32_property_value(PROPERTY_NAME_USER_ID.to_string()));
-        let user_login = UserLogin::new(json_object.get_string_property_value(PROPERTY_NAME_LOGIN.to_string()));
-        let user_display_name = UserDisplayName::new(json_object.get_string_property_value(PROPERTY_NAME_DISPLAY_NAME.to_string()));
-        let user_type = UserType::new_from_string(json_object.get_string_property_value(PROPERTY_NAME_TYPE.to_string()));
-        let user_broadcaster_type = UserBroadcasterType::new_from_string(json_object.get_string_property_value(PROPERTY_NAME_BROADCASTER_TYPE.to_string()));
-        let user_description = UserDescription::new(json_object.get_string_property_value(PROPERTY_NAME_DESCRIPTION.to_string()));
-        let user_profile_url = UserProfileImageUrlFormat::new(json_object.get_string_property_value(PROPERTY_NAME_PROFILE_IMAGE.to_string()));
-        let user_offline_url = UserOfflineImageUrlFormat::new(json_object.get_string_property_value(PROPERTY_NAME_OFFLINE_IMAGE.to_string()));
-        let user_view_count = UserViewCount::new(json_object.get_u32_property_value(PROPERTY_NAME_VIEW_COUNT.to_string()));
-        //
-        // try get email // otherwise blank
-        let user_email_string: String = {
-            let mut out_email_property: JsonPropertyValue = Default::default();
-            // REPLACE WITH try_use_property
-            if json_object.try_get_property_value_copy(JsonPropertyKey::new(PROPERTY_NAME_EMAIL.to_string(), PropertyType::Invalid), &mut out_email_property) {
-                out_email_property.get_string_value()
-            } else {
-                let debug = format!("Did not acquire user {}'s email address!", user_display_name.to_string());
-                println!("{}", debug);
-                String::from("")
-            }
-        };
-        let user_email = UserEmail::new(user_email_string);
-
-        Data::new(user_id, user_login, user_display_name, user_type, user_broadcaster_type, user_description, user_profile_url, user_offline_url, user_view_count, user_email)
-    }
-
-    async fn get_from_url<TLogger>(client: &Client, url: &str, web_request_headers: HeaderMap, logger: &TLogger) -> Data
-        where TLogger: Logger {
-        let response_text =
-            match request_data(client, url, web_request_headers, logger).await {
-
-                TwitchRequestResponse::Json { response_text } => { response_text }
-
-                _ => { panic!("JSON expected!"); }
+        for json_object in json_object_array {
+            let user_id = UserId::new(json_object.get_u32_property_value(PROPERTY_NAME_USER_ID.to_string()));
+            let user_login = UserLogin::new(json_object.get_string_property_value(PROPERTY_NAME_LOGIN.to_string()));
+            let user_display_name = UserDisplayName::new(json_object.get_string_property_value(PROPERTY_NAME_DISPLAY_NAME.to_string()));
+            let user_type = UserType::new_from_string(json_object.get_string_property_value(PROPERTY_NAME_TYPE.to_string()));
+            let user_broadcaster_type = UserBroadcasterType::new_from_string(json_object.get_string_property_value(PROPERTY_NAME_BROADCASTER_TYPE.to_string()));
+            let user_description = UserDescription::new(json_object.get_string_property_value(PROPERTY_NAME_DESCRIPTION.to_string()));
+            let user_profile_url = UserProfileImageUrlFormat::new(json_object.get_string_property_value(PROPERTY_NAME_PROFILE_IMAGE.to_string()));
+            let user_offline_url = UserOfflineImageUrlFormat::new(json_object.get_string_property_value(PROPERTY_NAME_OFFLINE_IMAGE.to_string()));
+            let user_view_count = UserViewCount::new(json_object.get_u32_property_value(PROPERTY_NAME_VIEW_COUNT.to_string()));
+            //
+            // try get email // otherwise blank
+            let user_email_string: String = {
+                let mut out_email_property: JsonPropertyValue = Default::default();
+                // REPLACE WITH try_use_property
+                if json_object.try_get_property_value_copy(JsonPropertyKey::new(PROPERTY_NAME_EMAIL.to_string(), PropertyType::Invalid), &mut out_email_property) {
+                    out_email_property.get_string_value()
+                } else {
+                    let debug = format!("Did not acquire user {}'s email address!", user_display_name.to_string());
+                    println!("{}", debug);
+                    String::from("")
+                }
             };
+            let user_email = UserEmail::new(user_email_string);
 
-        let json_object = crawl_json(response_text.as_str());
+            user_data.push(Data::new(user_id, user_login, user_display_name, user_type, user_broadcaster_type, user_description, user_profile_url, user_offline_url, user_view_count, user_email));
+        }
 
-        Data::from_json(json_object, logger)
+        user_data
     }
 
     pub async fn get_from_bearer_token<TLogger>(client: &Client, bearer_token: OauthToken, logger: &TLogger) -> Data
@@ -116,14 +106,46 @@ impl Data {
         let header_name = HeaderName::from_str(bearer_header.get_name().as_str()).unwrap();
         header_map.append(header_name, bearer_header.get_value());
 
-        Data::get_from_url(client, GET_USERS_URL, header_map, logger).await
+        Data::get_from_url(client, GET_USERS_URL, header_map, logger).await[0].clone()
     }
 
     pub async fn get_from_username<TLogger>(client: &Client, user_login: UserLogin, logger: &TLogger, headers: HeaderMap) -> Data
         where TLogger: Logger {
         let url = format!("{0}?login={1}", GET_USERS_URL, user_login.get_value());
 
-        Data::get_from_url(client, url.as_str(), headers, logger).await
+        Data::get_from_url(client, url.as_str(), headers, logger).await[0].clone()
+    }
+
+    async fn get_from_url<TLogger>(client: &Client, url: &str, web_request_headers: HeaderMap, logger: &TLogger) -> Vec<Data>
+        where TLogger: Logger {
+        let response_text =
+            match request_data(client, url, web_request_headers, logger).await {
+
+                TwitchRequestResponse::Json { response_text } => { response_text }
+
+                _ => { panic!("JSON expected!"); }
+            };
+
+        Self::from_json(crawl_json(response_text.as_str()), logger)
+    }
+
+    pub async fn get_from_usernames<TLogger>(client: &Client, user_logins: Vec<UserLogin>, logger: &TLogger, headers: HeaderMap) -> Vec<Data>
+        where TLogger: Logger {
+
+        if user_logins.len() == 0 { return Vec::new(); }
+
+
+        let url = {
+            let mut temp = format!("{0}?", GET_USERS_URL);
+
+            for login in user_logins {
+                temp = format!("{0}login={1}&", temp, login.get_value());
+            }
+
+            temp[0..temp.len()-1].to_string() // remove final ampersand
+        };
+
+        Self::get_from_url(client, url.as_str(), headers, logger).await
     }
 
     pub fn get_login(&self) -> UserLogin {

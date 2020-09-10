@@ -8,7 +8,7 @@ primitive_wrapper!(UserLogin, String, "(User Login: {})");
 
 primitive_wrapper!(UserDisplayName, String, "(User Display Name: {})");
 
-#[derive(Clone,PartialEq)]
+#[derive(Clone,PartialEq, Hash)]
 pub enum UserTypeEnum {
     Basic,
     Admin,
@@ -39,7 +39,7 @@ impl UserType {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Hash)]
 pub enum UserBroadcasterTypeEnum {
     Basic,
     Affiliate,

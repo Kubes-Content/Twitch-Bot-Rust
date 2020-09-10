@@ -67,6 +67,14 @@ impl ChatterData {
         ChatterData::from_json(crawl_json(response.text().await.unwrap().as_str()))
     }
 
+    pub fn get_mods(&self) -> Vec<UserLogin> {
+        self.moderators.clone()
+    }
+
+    pub fn get_broadcaster(&self) -> Vec<UserLogin> {
+        self.broadcaster.clone()
+    }
+
     pub fn get_all_viewers(&self, include_broadcaster:bool, include_mods:bool) -> Vec<UserLogin> {
 
         let mut all_viewers:Vec<UserLogin> = Vec::new();

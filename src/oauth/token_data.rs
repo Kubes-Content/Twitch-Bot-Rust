@@ -9,7 +9,7 @@ use crate::oauth::signature::Signature;
 use crate::oauth::validation_token::ValidationToken;
 
 
-#[derive(Clone)]
+#[derive(Clone, Hash)]
 pub struct TokenData {
     token_type:String,
     scopes:Vec<String>,

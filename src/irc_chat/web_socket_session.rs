@@ -1,10 +1,10 @@
 use std::ops::Deref;
-use std::sync::{Arc, Mutex, MutexGuard, TryLockError};
+use std::sync::{Arc, Mutex};
 use std::thread::sleep;
 use std::time::Instant;
 
 use tokio::time::{Duration, delay_for};
-use websocket::{ClientBuilder, Message, WebSocketError, OwnedMessage, WebSocketResult};
+use websocket::{ClientBuilder, Message, WebSocketError};
 use websocket::client::sync::Client;
 use websocket::url::Url;
 use websocket::websocket_base::stream::sync::{TcpStream, TlsStream};
@@ -16,11 +16,6 @@ use crate::logger::Logger;
 use crate::user::oauth_token::OauthToken as UserOauthToken;
 use crate::user::user_data::Data as UserData;
 use crate::user::user_properties::UserLogin;
-use futures::executor::block_on;
-use std::process::Output;
-use std::future::Future;
-use std::pin::Pin;
-use futures::FutureExt;
 
 
 pub struct WebSocketSession<TParser, TLogger>
@@ -82,7 +77,7 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
 
             let self_arc = self_arc1.clone();
 
-            let mut irc_listener = Arc::new(tokio::sync::Mutex::new(irc_listener));
+            let irc_listener = Arc::new(tokio::sync::Mutex::new(irc_listener));
 
             sleep(Duration::from_millis(2));
 
@@ -115,7 +110,7 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
             let irc_listener = irc_listener.clone();
             {
                 match self_arc.try_lock() {
-                    Ok(local_mutex) => {
+                    Ok(_local_mutex) => {
                         println!("listen waiting for message...");
 
                         //let mut irc_listener = ClientBuilder::from_url(&local_mutex.irc_url).connect_secure(None).unwrap();
@@ -129,7 +124,9 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
 
                                 match irc_listener.try_lock() {
                                     Ok(mut irc_mutex) => {
+                                        println!("attempt retrieval");
                                         *received_result = Some(irc_mutex.recv_message());
+                                        println!("post retrieval");
 
                                     }
                                     Err(e) => {
@@ -226,7 +223,10 @@ impl<TParser,TLogger> WebSocketSession<TParser, TLogger>
     }
 
     pub fn send_string(&self, irc_dispatcher:&mut Client<TlsStream<TcpStream>>, data_to_send: String) {
-        irc_dispatcher.send_message(&Message::text(data_to_send.clone())).unwrap();
+        match irc_dispatcher.send_message(&Message::text(data_to_send.clone())) {
+            Ok(_) => {},
+            Err(e) => { println!("ERROR: {}", e) },
+        };
 
         if !data_to_send.contains("PASS") && !data_to_send.contains("auth_token:") {
             println!("SENT: {}", data_to_send);

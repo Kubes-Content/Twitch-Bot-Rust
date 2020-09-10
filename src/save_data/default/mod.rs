@@ -17,6 +17,7 @@ macro_rules! serialize_field_wrapper {
 }
 
 pub mod custom_commands_save_data;
+pub mod user_rpg_stats;
 
 pub trait Serializable {
     fn to_json(self) -> String;
