@@ -1,6 +1,7 @@
 use crate::save_data::default::user_rpg_stats::UserRpgStats;
 use crate::user::user_properties::UserId;
 use std::collections::HashMap;
+use tokio::io::Error;
 
 const TICKS_PER_EXP_POINT: u32 = 40;
 
@@ -78,7 +79,14 @@ impl TickData {
 
             green_ln!("Giving user an exp point! id: {}", user_id.get_value());
 
-            let mut current_stats = UserRpgStats::load_or_default(channel.clone(), user_id.clone());
+            let mut current_stats =
+                match UserRpgStats::load_or_default(channel.clone(), user_id.clone()) {
+                    Ok(stats) => stats,
+                    Err(e) => {
+                        red!("Unable to give user and exp point {}", e);
+                        return;
+                    }
+                };
             current_stats.add_experience_points(1);
             current_stats.save(channel.clone(), user_id.clone());
 

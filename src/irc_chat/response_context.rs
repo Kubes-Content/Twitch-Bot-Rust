@@ -9,18 +9,19 @@ macro_rules! user_commands_map {
 }*/
 
 pub struct ResponseContext {
-    client_data:UserData,
-    response_received:String,
-    responses_to_send:Vec<String>,
+    client_data: UserData,
+    response_received: String,
+    responses_to_send: Vec<String>,
     //user_commands:user_commands_map!()
 }
 
 //unsafe impl Send for ResponseContext {}
 
 impl ResponseContext {
-    pub fn new(client_data:UserData,
-               response_received:String,
-               //user_commands:user_commands_map!()
+    pub fn new(
+        client_data: UserData,
+        response_received: String,
+        //user_commands:user_commands_map!()
     ) -> ResponseContext {
         ResponseContext {
             client_data,
@@ -38,9 +39,11 @@ impl ResponseContext {
         self.responses_to_send.clone()
     }
 
-    pub fn add_response_to_reply_with(&mut self, reply:String) {
+    pub fn add_response_to_reply_with(&mut self, reply: String) {
         self.responses_to_send.push(reply);
     }
 
-    pub fn get_client_user(&self) -> UserData { self.client_data.clone() }
+    pub fn get_client_user_data(&self) -> UserData {
+        self.client_data.clone()
+    }
 }

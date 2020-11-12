@@ -2,22 +2,23 @@ use std::io::{ErrorKind, Read};
 use std::net::TcpListener;
 use std::ops::Add;
 
-use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderValue};
+use reqwest::Client;
 
 use crate::credentials::access_scopes::get_all_scopes;
 use crate::credentials::bot_user_credentials::REDIRECT_URI;
 use crate::credentials::client_id::ClientId;
 use crate::credentials::client_secret::ClientSecret;
 use crate::json::crawler::crawl_json;
+use crate::json::crawler::json_object::JsonObject;
 use crate::logger::Logger;
 use crate::oauth::has_oauth_signature::HasOauthSignature;
 use crate::oauth::signature::Signature;
 use crate::oauth::token_data::TokenData;
 use crate::oauth::validation_token::ValidationToken;
-use crate::web_requests::{is_html, is_json, post_request, request};
 use crate::web_requests::header::Header as WebRequestHeader;
 use crate::web_requests::twitch::{request_data, TwitchRequestResponse};
+use crate::web_requests::{is_html, is_json, post_request, request};
 
 primitive_wrapper!(OauthToken, TokenData, "{}");
 
@@ -26,7 +27,6 @@ impl Default for OauthToken {
         OauthToken::new(TokenData::from_str("", "".to_string()))
     }
 }
-
 
 impl HasOauthSignature for OauthToken {
     fn get_oauth_signature(&self) -> Signature {
@@ -38,17 +38,24 @@ impl HasOauthSignature for OauthToken {
     }
 }
 
-
 impl OauthToken {
-    pub async fn request<TLogger>(web_client: &Client, client_id: ClientId, client_secret:ClientSecret, logger:&TLogger) -> OauthToken
-        where TLogger: Logger {
+    pub async fn request<TLogger>(
+        web_client: &Client,
+        client_id: ClientId,
+        client_secret: ClientSecret,
+        logger: &TLogger,
+    ) -> OauthToken
+    where
+        TLogger: Logger,
+    {
         let url_authoritive_flow = format!("https://id.twitch.tv/oauth2/authorize?client_id={0}&redirect_uri={1}&response_type=code&scope={2}", client_id.value, REDIRECT_URI, get_all_scopes());
 
         println!("{}", url_authoritive_flow);
 
         let headers = HeaderMap::new();
 
-        let authorization_response = request(web_client, url_authoritive_flow.as_str(), headers.clone()).await;
+        let authorization_response =
+            request(web_client, url_authoritive_flow.as_str(), headers.clone()).await;
 
         let authorization = {
             let mut authorization = String::new();
@@ -98,7 +105,7 @@ impl OauthToken {
                             authorization = authorization_temp;
                             break;
                         }
-                        Err(_) => {},
+                        Err(_) => {}
                     }
                 }
             }
@@ -107,23 +114,28 @@ impl OauthToken {
 
         let url_request_access_token = format!("https://id.twitch.tv/oauth2/token?client_id={0}&client_secret={1}&code={2}&grant_type=authorization_code&redirect_uri={3}", client_id.value, client_secret.value, authorization, REDIRECT_URI);
 
-        let token_response = post_request(web_client, url_request_access_token.as_str() , headers.clone()).await;
+        let token_response = post_request(
+            web_client,
+            url_request_access_token.as_str(),
+            headers.clone(),
+        )
+        .await;
 
         let token = {
-
-            if ! is_json(&token_response, logger) {
+            if !is_json(&token_response, logger) {
                 panic!("EXPECTED JSON");
             }
 
-            TokenData::from_json(crawl_json(token_response.text().await.unwrap().as_str()), client_id)
+            match crawl_json(token_response.text().await.unwrap().as_str()) {
+                Ok(token_json) => TokenData::from_json(token_json, client_id),
+                Err(_) => panic!("Failed to retrieve oauth token."),
+            }
         };
-
 
         //let token = get_input_from_console("Upon authorizing your account, please post the URL of the page you are redirected to into the console to finalize authorization.");
 
-
         OauthToken::new(token)
-//        OauthToken::new(TokenData::from_str(authorization.as_str(), client_id.value))
+        //        OauthToken::new(TokenData::from_str(authorization.as_str(), client_id.value))
     }
 
     pub fn get_client_id(&self) -> ClientId {
@@ -134,24 +146,36 @@ impl OauthToken {
         self.value.clone()
     }
 
-    pub fn get_oauth_oauth_header(&self) -> WebRequestHeader { self.get_oauth_signature().get_oauth_oauth_header() }
+    pub fn get_oauth_oauth_header(&self) -> WebRequestHeader {
+        self.get_oauth_signature().get_oauth_oauth_header()
+    }
 
-    pub fn get_oauth_bearer_header(&self) -> WebRequestHeader { self.get_oauth_signature().get_oauth_bearer_header() }
+    pub fn get_oauth_bearer_header(&self) -> WebRequestHeader {
+        self.get_oauth_signature().get_oauth_bearer_header()
+    }
 
-    pub async fn validate<TLogger>(&mut self, client: &Client, logger:&TLogger)
-        where TLogger: Logger {
+    pub async fn validate<TLogger>(&mut self, client: &Client, logger: &TLogger)
+    where
+        TLogger: Logger,
+    {
         const VALIDATION_URL: &str = "https://id.twitch.tv/oauth2/validate";
         const AUTHORIZATION_HEADER: &str = "Authorization";
 
         let mut header_map = HeaderMap::new();
-        header_map.append(AUTHORIZATION_HEADER, HeaderValue::from_str(format!("OAuth {}", self.get_oauth_signature().to_string()).as_str()).unwrap());
+        header_map.append(
+            AUTHORIZATION_HEADER,
+            HeaderValue::from_str(
+                format!("OAuth {}", self.get_oauth_signature().to_string()).as_str(),
+            )
+            .unwrap(),
+        );
 
-        match request_data(client,
-                     VALIDATION_URL,
-                     header_map,
-                     logger).await {
+        match request_data(client, VALIDATION_URL, header_map, logger).await {
             TwitchRequestResponse::Json { response_text } => {
-                let validation_token = ValidationToken::from_json(crawl_json(response_text.as_str()));
+                let validation_token = match crawl_json(response_text.as_str()) {
+                    Ok(j) => ValidationToken::from_json(j),
+                    Err(_) => panic!("Failed to parse validation token!"),
+                };
 
                 self.update_oauth(validation_token);
 
@@ -159,7 +183,7 @@ impl OauthToken {
             }
             _ => {
                 panic!("Expecting JSON!");
-            },
+            }
         };
     }
 }

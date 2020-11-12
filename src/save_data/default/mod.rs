@@ -1,3 +1,4 @@
+use std::error::Error;
 macro_rules! serialize_root_object_wrapper {
     ($inside:expr) => {
         format!("{{{}}}", $inside)
@@ -7,7 +8,7 @@ macro_rules! serialize_root_object_wrapper {
 macro_rules! serialize_object_wrapper {
     ($key:tt, $inside:expr) => {
         format!("\"{0}\":{{{1}}}", $key, $inside);
-     };
+    };
 }
 
 macro_rules! serialize_field_wrapper {
@@ -20,6 +21,12 @@ pub mod custom_commands_save_data;
 pub mod user_rpg_stats;
 
 pub trait Serializable {
-    fn to_json(self) -> String;
-    fn from_json(json:String) -> Self;
+    fn to_json(&self) -> String;
+    fn from_json(json: String) -> Result<Self, Box<dyn Error>>
+    where
+        Self: Sized;
+}
+
+pub struct JsonString {
+    value: String,
 }

@@ -1,33 +1,35 @@
+use crate::irc_chat::channel_chatter_data::ChatterData;
 use crate::irc_chat::commands::send_message_from_client_user_format;
+use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
 use crate::irc_chat::response_context::ResponseContext;
 use crate::irc_chat::twitch_user_message::TwitchIrcUserMessage;
 use crate::logger::Logger;
-use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
+use crate::user::is_admin_or_mod;
 use std::future::Future;
 use std::sync::Arc;
-use crate::irc_chat::channel_chatter_data::ChatterData;
 
-
-pub fn shoutout<TLogger>(_parser:DefaultMessageParser<TLogger>, message:TwitchIrcUserMessage, args:Vec<String>, context_mutex:Arc<tokio::sync::Mutex<ResponseContext>>, _logger:&TLogger) -> Box<dyn Future<Output=()> + Unpin + Send>
-    where TLogger: Logger {
-
-
+pub fn shoutout<TLogger>(
+    _parser: DefaultMessageParser<TLogger>,
+    message: TwitchIrcUserMessage,
+    args: Vec<String>,
+    context_mutex: Arc<tokio::sync::Mutex<ResponseContext>>,
+    _logger: &TLogger,
+) -> Box<dyn Future<Output = ()> + Unpin + Send>
+where
+    TLogger: Logger,
+{
     Box::new(Box::pin(async move {
-
-        let reqwest_client = reqwest::Client::builder().build().unwrap();
-
-        let chatter_data = ChatterData::from_channel(&reqwest_client, message.get_target_channel()).await;
-
-        let mods = chatter_data.get_mods();
-
-        if message.get_target_channel() != message.get_speaker() && ! mods.contains(&message.get_speaker()) {
+        if !is_admin_or_mod(message.get_speaker(), message.get_target_channel()).await {
             return;
         }
 
         let shoutout_reply = {
             // check if name to shoutout is missing
-            if args.len() == 0 || args[0].is_empty() || args[0] == "@"{
-                format!("A name to shoutout was not given!\nYou screwed up, {}!", message.get_speaker().get_value())
+            if args.len() == 0 || args[0].is_empty() || args[0] == "@" {
+                format!(
+                    "A name to shoutout was not given!\nYou screwed up, {}!",
+                    message.get_speaker().get_value()
+                )
             } else {
                 let name_to_shoutout = {
                     let dirty_name = args[0].clone();
@@ -44,13 +46,14 @@ pub fn shoutout<TLogger>(_parser:DefaultMessageParser<TLogger>, message:TwitchIr
 
         // TODO check if user is a mod or channel owner, to allow shoutout to trigger
 
-
         match context_mutex.try_lock() {
             Ok(mut context) => {
-                context.add_response_to_reply_with(send_message_from_client_user_format(message.get_target_channel(), shoutout_reply));
+                context.add_response_to_reply_with(send_message_from_client_user_format(
+                    message.get_target_channel(),
+                    shoutout_reply,
+                ));
             }
-            Err(e) => { panic!("Error! : {}", e) }
+            Err(e) => panic!("Error! : {}", e),
         }
-
     }))
 }

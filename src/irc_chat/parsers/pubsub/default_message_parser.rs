@@ -1,96 +1,94 @@
-use async_trait::async_trait;
 use crate::irc_chat::parsers::pubsub::event::channel_points_event::ChannelPointsEvent;
 use crate::irc_chat::response_context::ResponseContext;
 use crate::irc_chat::traits::message_parser::MessageParser;
 use crate::json::crawler::crawl_json;
+use crate::json::crawler::json_object::JsonObject;
 use crate::logger::Logger;
 use crate::user::user_properties::UserId;
+use async_trait::async_trait;
 use std::sync::Arc;
 
-
-pub struct DefaultPubSubParser
-{
-
-}
+pub struct DefaultPubSubParser {}
 
 #[async_trait]
-impl<TLogger: Clone + Logger> MessageParser<TLogger> for DefaultPubSubParser
-{
-    async fn process_response(&self, context_mutex:Arc<tokio::sync::Mutex<ResponseContext>>, logger: &TLogger) -> bool {
+impl<TLogger: Clone + Logger> MessageParser<TLogger> for DefaultPubSubParser {
+    async fn process_response(
+        &self,
+        context_mutex: Arc<tokio::sync::Mutex<ResponseContext>>,
+        logger: &TLogger,
+    ) -> bool {
         let json_object = {
             match context_mutex.try_lock() {
-                Ok(context) => {
-                    crawl_json(context.get_initial_response().as_str())
-                }
-                Err(e) => { panic!("Error! : {}", e) }
+                Ok(context) => match crawl_json(context.get_initial_response().as_str()) {
+                    Ok(result) => result,
+                    Err(_) => panic!("Could not parse pubsub response!"),
+                },
+                Err(e) => panic!("Error! : {}", e),
             }
         };
 
-
         // return if not a sub message
-        if json_object.get_string_property_value("type".to_string()) != "MESSAGE" { return true; }
+        if json_object.get_string_property_value("type".to_string()) != "MESSAGE" {
+            return true;
+        }
 
-
-        let event_outer_wrapper_object =  json_object.get_object_property("data".to_string());
+        let event_outer_wrapper_object = json_object.get_object_property("data".to_string());
         let event_topic = event_outer_wrapper_object.get_string_property_value("topic".to_string());
 
         let client_user_id = {
             match context_mutex.try_lock() {
-                Ok(context) => {
-                    context.get_client_user().get_user_id().get_value()
-                }
-                Err(e) => { panic!("Error! : {}", e) }
+                Ok(context) => context.get_client_user_data().get_user_id().get_value(),
+                Err(e) => panic!("Error! : {}", e),
             }
         };
 
-        match event_topic[event_topic.len()-UserId::LENGTH..event_topic.len()].parse::<u32>() {
+        match event_topic[event_topic.len() - UserId::LENGTH..event_topic.len()].parse::<u32>() {
             // prevent triggering in channels other than the client's
-            Ok(event_channel_id) => { if event_channel_id != client_user_id { return true; } },
+            Ok(event_channel_id) => {
+                if event_channel_id != client_user_id {
+                    return true;
+                }
+            }
             // unexpected signature
-            Err(_) => { logger.write_line(format!("Pubsub event's topic does not match expected format! Topic: {}", event_topic)); return false; },
+            Err(_) => {
+                logger.write_line(format!(
+                    "Pubsub event's topic does not match expected format! Topic: {}",
+                    event_topic
+                ));
+                return false;
+            }
         }
 
-        match &event_topic[0..event_topic.len()-UserId::LENGTH-1] {
-            "channel-bits-badge-unlocks" => {
-                false
-            }
-            "channel-bits-events-v2" => {
-                false
-            }
-            "channel-commerce-events-v1" => {
-                false
-            }
+        match &event_topic[0..event_topic.len() - UserId::LENGTH - 1] {
+            "channel-bits-badge-unlocks" => false,
+            "channel-bits-events-v2" => false,
+            "channel-commerce-events-v1" => false,
             "channel-points-channel-v1" => {
-                let event_json_text = event_outer_wrapper_object.get_string_property_value("message".to_string());
-                let event_inner_wrapper_object = crawl_json(event_json_text.as_str());
-                let event_json_object = event_inner_wrapper_object.get_object_property("data".to_string());
+                let event_json_text =
+                    event_outer_wrapper_object.get_string_property_value("message".to_string());
+                let event_inner_wrapper_object = match crawl_json(event_json_text.as_str()) {
+                    Ok(r) => r,
+                    Err(_) => panic!("Could not parse pubsub event data!"),
+                };
+                let event_json_object =
+                    event_inner_wrapper_object.get_object_property("data".to_string());
 
-                let channel_points_event = ChannelPointsEvent::from_json(event_json_object);
+                let _channel_points_event = ChannelPointsEvent::from_json(event_json_object);
 
                 println!("---Channel points event was parsed successfully!");
 
                 true
             }
-            "channel-subscribe-events-v1" => {
-                false
-            }
-            "whispers" => {
-                false
-            }
-            _ => {
-
-                false
-            }
+            "channel-subscribe-events-v1" => false,
+            "whispers" => false,
+            _ => false,
         }
     }
-
-
 }
 
-impl DefaultPubSubParser
-{
+impl DefaultPubSubParser {
     pub fn new() -> DefaultPubSubParser {
-        DefaultPubSubParser { }
+        DefaultPubSubParser {}
     }
 
     // init commands fn

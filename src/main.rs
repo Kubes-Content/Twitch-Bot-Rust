@@ -1,11 +1,9 @@
 extern crate async_trait;
 #[macro_use]
 extern crate colour;
-extern crate futures;
 extern crate tokio;
 
 use crate::main_tick_data::TickData;
-use crate::save_data::default::user_rpg_stats::UserRpgStats;
 use credentials::client_id::ClientId;
 use irc_chat::{
     channel_chatter_data::ChatterData,
@@ -17,22 +15,21 @@ use irc_chat::{
 };
 use logger::{DefaultLogger, Logger};
 use oauth::has_oauth_signature::HasOauthSignature;
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use reqwest::Client;
+use reqwest::{
+    header::{HeaderMap, HeaderName, HeaderValue},
+    Client,
+};
 use secrets::{CLIENT_ID, CLIENT_SECRET};
 use std::{collections::HashMap, convert::TryFrom, str::FromStr, sync::Arc, time::Instant};
 use tokio::time::{delay_for, Duration};
-use user::{
-    oauth_token::OauthToken as UserOauthToken,
-    user_data::Data as UserData,
-    user_properties::{UserId, UserLogin},
-};
+use user::{oauth_token::OauthToken as UserOauthToken, user_data::Data as UserData};
 use websocket::{
     stream::sync::{TcpStream, TlsStream},
     url::Url,
 };
 
 #[macro_use]
+/// General macros
 pub mod macros {
     #[macro_export]
     macro_rules! primitive_wrapper {
@@ -95,6 +92,7 @@ async fn main() {
     tick(token, user, TICK_RATE).await;
 }
 
+/// Interacts with Twitch Events such as subs and channel points spending
 async fn start_pubsub_session(token: UserOauthToken, user: UserData) {
     let pubsub_url = Url::from_str("wss://pubsub-edge.twitch.tv").unwrap();
     // create PubSub-WebSocket
@@ -134,6 +132,7 @@ async fn start_pubsub_session(token: UserOauthToken, user: UserData) {
     WebSocketSession::initialize(pubsub_arc, on_pubsub_start).await;
 }
 
+/// Interacts with Twitch IRC chat in a designated channel
 async fn start_chat_session(token: UserOauthToken, user: UserData) {
     let chat_url = websocket::url::Url::from_str("wss://irc-ws.chat.twitch.tv:443").unwrap();
     // create Chat-IRC
@@ -175,6 +174,7 @@ async fn start_chat_session(token: UserOauthToken, user: UserData) {
     WebSocketSession::initialize(chat_irc_arc.clone(), on_chat_start).await;
 }
 
+/// Get OAuth token and the logged in client_user's info
 async fn init_token_and_user<TLogger>(logger: &TLogger) -> (UserOauthToken, UserData)
 where
     TLogger: Logger,
@@ -204,9 +204,10 @@ where
 
 async fn tick(token: UserOauthToken, user: UserData, tick_rate: u64) {
     let reqwest_client = reqwest::Client::builder().build().unwrap();
-    delay_for(Duration::from_millis(tick_rate)).await;
-
     let mut tick_data = Default::default();
+
+    delay_for(Duration::from_millis(tick_rate)).await; // don't trigger before WebSockets start
+
     loop {
         let before_tick_instant = Instant::now();
 

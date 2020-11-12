@@ -1,23 +1,17 @@
 [package]
-name = "untitled1"
+name = "kubes_twitch_bot"
 version = "0.1.0"
 authors = ["Kubes' Content <kubescontent@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 async-trait = "*"
 chrono = "*"
 colour = "*"
-futures = "*"
-futures-channel = "*"
 open = "*"
 rand = "*"
 reqwest = "*"
-websocket = "*"
+tokio = { version = "*", features = ["time", "macros", "sync", "tcp"] }
 url = "*"
-
-[dependencies.tokio]
-version = "*"
-features = ["time", "macros", "sync", "tcp"]
+websocket = "*"
