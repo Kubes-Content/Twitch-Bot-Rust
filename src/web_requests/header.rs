@@ -1,4 +1,4 @@
-use super::reqwest::header::HeaderValue;
+/*use super::reqwest::header::HeaderValue;
 
 
 pub struct Header {
@@ -18,4 +18,4 @@ impl Header {
     pub fn get_value(&self) -> HeaderValue {
         self.value.clone()
     }
-}
+}*/

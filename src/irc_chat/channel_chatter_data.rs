@@ -1,11 +1,15 @@
 use reqwest::header::HeaderMap;
 use reqwest::Client;
 
-use crate::json::crawler::crawl_json;
-use crate::json::crawler::json_object::JsonObject;
 use crate::user::user_properties::UserLogin;
-use crate::web_requests::request;
+use crate::web_requests::WEB_REQUEST_ATTEMPTS;
+use kubes_web_lib::json::crawler::{crawl_json, json_object::JsonObject};
+use kubes_web_lib::web_request::{request, RequestType};
+use url::Url;
+use std::error::Error;
 
+
+#[allow(dead_code)]
 pub struct ChatterData {
     chatter_count: u32,
     broadcaster: Vec<UserLogin>,
@@ -82,18 +86,22 @@ impl ChatterData {
         )
     }
 
-    pub async fn from_channel(client: &Client, channel: UserLogin) -> ChatterData {
+    pub async fn from_channel(client: &Client, channel: UserLogin) -> Result<ChatterData, Box<dyn Error>> {
         let url = format!(
             "https://tmi.twitch.tv/group/user/{}/chatters",
             channel.get_value()
         );
 
-        let response = request(client, url.as_str(), HeaderMap::new()).await;
+        let response = request(
+            client,
+            Url::parse(url.as_str())?,
+            RequestType::Get,
+            HeaderMap::new(),
+            WEB_REQUEST_ATTEMPTS,
+        )
+        .await?;
 
-        match crawl_json(response.text().await.unwrap().as_str()) {
-            Ok(chatter_data_json) => ChatterData::from_json(chatter_data_json),
-            Err(_) => panic!("Could not retrieve chatter data!"),
-        }
+        Ok(ChatterData::from_json(crawl_json(response.text().await?.as_str())?))
     }
 
     pub fn get_mods(&self) -> Vec<UserLogin> {

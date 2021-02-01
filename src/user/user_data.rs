@@ -3,23 +3,24 @@ use std::str::FromStr;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::Client;
 
-use crate::json::crawler::crawl_json;
-use crate::json::crawler::json_object::JsonObject;
-use crate::json::crawler::json_property_key::JsonPropertyKey;
-use crate::json::crawler::json_property_value::JsonPropertyValue;
-use crate::json::crawler::property_type::PropertyType;
-use crate::logger::Logger;
+use crate::send_error::KubesError;
 use crate::user::oauth_token::OauthToken;
 use crate::user::user_properties::{
     UserBroadcasterType, UserDescription, UserDisplayName, UserEmail, UserId, UserLogin,
     UserOfflineImageUrlFormat, UserProfileImageUrlFormat, UserType, UserViewCount,
 };
 use crate::web_requests::twitch::{request_data, TwitchRequestResponse};
+use kubes_std_lib::logging::Logger;
+use kubes_web_lib::json::crawler::{
+    crawl_json, json_object::JsonObject, json_property_key::JsonPropertyKey,
+    json_property_value::JsonPropertyValue, property_type::PropertyType,
+};
+use std::error::Error;
 
 const GET_USERS_URL: &str = "https://api.twitch.tv/helix/users";
 
 #[derive(Clone)]
-pub struct Data {
+pub struct UserData {
     id: UserId,
     login: UserLogin,
     display_name: UserDisplayName,
@@ -32,7 +33,7 @@ pub struct Data {
     email: UserEmail,
 }
 
-impl Data {
+impl UserData {
     fn new(
         new_id: UserId,
         new_login: UserLogin,
@@ -44,8 +45,8 @@ impl Data {
         new_offline_image: UserOfflineImageUrlFormat,
         new_view_count: UserViewCount,
         new_email: UserEmail,
-    ) -> Data {
-        Data {
+    ) -> UserData {
+        UserData {
             id: new_id,
             login: new_login,
             display_name: new_display_name,
@@ -59,7 +60,7 @@ impl Data {
         }
     }
 
-    pub fn from_json<TLogger>(json_data_object: JsonObject, _logger: &TLogger) -> Vec<Data>
+    pub fn from_json<TLogger>(json_data_object: JsonObject, _logger: &TLogger) -> Vec<UserData>
     where
         TLogger: Logger,
     {
@@ -74,7 +75,7 @@ impl Data {
         const PROPERTY_NAME_VIEW_COUNT: &str = "view_count";
         const PROPERTY_NAME_EMAIL: &str = "email";
 
-        let mut user_data: Vec<Data> = Vec::new();
+        let mut user_data: Vec<UserData> = Vec::new();
 
         let json_object_array = json_data_object.get_non_empty_object_array_vector_property(
             JsonPropertyKey::new("data".to_string(), PropertyType::Invalid),
@@ -128,7 +129,7 @@ impl Data {
             };
             let user_email = UserEmail::new(user_email_string);
 
-            user_data.push(Data::new(
+            user_data.push(UserData::new(
                 user_id,
                 user_login,
                 user_display_name,
@@ -149,36 +150,33 @@ impl Data {
         client: &Client,
         bearer_token: OauthToken,
         logger: &TLogger,
-    ) -> Data
+    ) -> Result<UserData, Box<dyn Error>>
     where
         TLogger: Logger,
     {
         let mut header_map = HeaderMap::new();
-        let client_header = bearer_token.get_client_id().get_header();
-        let header_name = HeaderName::from_str(client_header.get_name().as_str()).unwrap();
+        let client_header = bearer_token.get_client_id().get_header()?;
+        let header_name = HeaderName::from_str(client_header.key.as_str())?;
         header_map.append(
             header_name,
-            HeaderValue::from_str(bearer_token.get_client_id().value.as_str()).unwrap(),
+            HeaderValue::from_str(bearer_token.get_client_id().value.as_str())?,
         );
         let bearer_header = bearer_token.get_oauth_bearer_header();
-        let header_name = HeaderName::from_str(bearer_header.get_name().as_str()).unwrap();
-        header_map.append(header_name, bearer_header.get_value());
+        let header_name = HeaderName::from_str(bearer_header.key.as_str())?;
+        header_map.append(header_name, bearer_header.value);
 
-        Data::get_from_url(client, GET_USERS_URL, header_map, logger).await[0].clone()
+        Ok(UserData::get_from_url(client, GET_USERS_URL, header_map, logger).await?[0].clone())
     }
 
-    pub async fn get_from_username<TLogger>(
+    pub async fn get_from_username<TLogger: Logger>(
         client: &Client,
         user_login: UserLogin,
         logger: &TLogger,
         headers: HeaderMap,
-    ) -> Data
-    where
-        TLogger: Logger,
-    {
+    ) -> Result<UserData, Box<dyn Error>> {
         let url = format!("{0}?login={1}", GET_USERS_URL, user_login.get_value());
 
-        Data::get_from_url(client, url.as_str(), headers, logger).await[0].clone()
+        Ok(UserData::get_from_url(client, url.as_str(), headers, logger).await?[0].clone())
     }
 
     async fn get_from_url<TLogger>(
@@ -186,22 +184,21 @@ impl Data {
         url: &str,
         web_request_headers: HeaderMap,
         logger: &TLogger,
-    ) -> Vec<Data>
+    ) -> Result<Vec<UserData>, Box<dyn Error>>
     where
         TLogger: Logger,
     {
-        let response_text = match request_data(client, url, web_request_headers, logger).await {
-            TwitchRequestResponse::Json { response_text } => response_text,
+        let response_text =  // JSON expected
+        match request_data(client, url, web_request_headers, logger).await {
 
-            _ => {
-                panic!("JSON expected!");
-            }
+            TwitchRequestResponse::Json { response_text } => response_text,
+            _ => return Err(Box::new(KubesError { error: "JSON EXPECTED".to_string() }))
         };
 
-        match crawl_json(response_text.as_str()) {
-            Ok(user_data_json) => Data::from_json(user_data_json, logger),
-            Err(_) => panic!("Could not retrieve user data!"),
-        }
+        Ok(UserData::from_json(
+            crawl_json(response_text.as_str())?,
+            logger,
+        ))
     }
 
     pub async fn get_from_usernames<TLogger>(
@@ -209,12 +206,12 @@ impl Data {
         user_logins: Vec<UserLogin>,
         logger: &TLogger,
         headers: HeaderMap,
-    ) -> Vec<Data>
+    ) -> Result<Vec<UserData>, Box<dyn Error>>
     where
         TLogger: Logger,
     {
         if user_logins.len() == 0 {
-            return Vec::new();
+            return Ok(Vec::new());
         }
 
         let url = {

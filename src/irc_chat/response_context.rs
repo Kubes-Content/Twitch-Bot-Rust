@@ -1,4 +1,4 @@
-use crate::user::user_data::Data as UserData;
+use crate::user::user_data::UserData;
 
 /*macro_rules! user_command_type {
     () => { &'life dyn Fn(TwitchIrcUserMessage, Vec<String>, &mut ResponseContext, &dyn Logger) };
@@ -8,26 +8,21 @@ macro_rules! user_commands_map {
     () => { HashMap<String, user_command_type!() > };
 }*/
 
+#[derive(Clone)]
 pub struct ResponseContext {
     client_data: UserData,
     response_received: String,
     responses_to_send: Vec<String>,
-    //user_commands:user_commands_map!()
 }
 
 //unsafe impl Send for ResponseContext {}
 
 impl ResponseContext {
-    pub fn new(
-        client_data: UserData,
-        response_received: String,
-        //user_commands:user_commands_map!()
-    ) -> ResponseContext {
+    pub fn new(client_data: UserData, response_received: String) -> ResponseContext {
         ResponseContext {
             client_data,
             response_received,
             responses_to_send: Vec::new(),
-            //user_commands
         }
     }
 

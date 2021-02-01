@@ -1,6 +1,8 @@
 extern crate async_trait;
 #[macro_use]
 extern crate colour;
+#[macro_use]
+extern crate kubes_std_lib;
 extern crate tokio;
 
 use crate::main_tick_data::TickData;
@@ -13,88 +15,64 @@ use irc_chat::{
     },
     web_socket_session::WebSocketSession,
 };
-use logger::{DefaultLogger, Logger};
+pub use kubes_std_lib::logging::{DefaultLogger, Logger};
+pub use kubes_web_lib::web_request::{is_html, is_json};
 use oauth::has_oauth_signature::HasOauthSignature;
 use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue},
     Client,
 };
 use secrets::{CLIENT_ID, CLIENT_SECRET};
-use std::{collections::HashMap, convert::TryFrom, str::FromStr, sync::Arc, time::Instant};
-use tokio::time::{delay_for, Duration};
-use user::{oauth_token::OauthToken as UserOauthToken, user_data::Data as UserData};
+use std::error::Error;
+use std::{convert::TryFrom, str::FromStr, sync::Arc, time::Instant};
+use tokio::time::{delay_for as sleep, Duration};
+use user::{oauth_token::OauthToken as UserOauthToken, user_data::UserData};
 use websocket::{
     stream::sync::{TcpStream, TlsStream},
     url::Url,
 };
 
-#[macro_use]
-/// General macros
-pub mod macros {
-    #[macro_export]
-    macro_rules! primitive_wrapper {
-        ($type_name:ident, $wrapped_type:ty, $string_format:expr) => {
-            #[derive(Clone, Hash)]
-            pub struct $type_name {
-                value: $wrapped_type,
-            }
-
-            impl ToString for $type_name {
-                fn to_string(&self) -> String {
-                    format!($string_format, self.value.to_string())
-                }
-            }
-
-            impl PartialEq for $type_name {
-                fn eq(&self, other: &$type_name) -> bool {
-                    self.value == other.value
-                }
-            }
-
-            impl Eq for $type_name {}
-
-            impl $type_name {
-                pub fn new(new_value: $wrapped_type) -> $type_name {
-                    $type_name { value: new_value }
-                }
-
-                pub fn get_value(&self) -> $wrapped_type {
-                    self.value.clone()
-                }
-            }
-        };
-    }
-}
-
 pub mod credentials;
-pub mod debug;
 pub mod irc_chat;
-pub mod json;
-pub mod logger;
 pub mod main_tick_data;
 pub mod oauth;
 pub mod save_data;
 pub mod secrets;
+mod send_error;
 pub mod user;
-pub mod utilities;
 pub mod web_requests;
 
 const TICK_RATE: u64 = 1000;
 
 #[tokio::main]
 async fn main() {
-    let (token, user) = init_token_and_user(&DefaultLogger {}).await;
+    let (token, user) = match init_token_and_user(&DefaultLogger {}).await {
+        Ok(r) => r,
+        Err(e) => {
+            println!("{}", e.to_string());
+            return;
+        }
+    };
 
-    start_chat_session(token.clone(), user.clone()).await;
+    match start_chat_session(token.clone(), user.clone()).await {
+        Ok(_) => {}
+        Err(e) => println!("{}", e.to_string()),
+    };
 
-    start_pubsub_session(token.clone(), user.clone()).await;
+    match start_pubsub_session(token.clone(), user.clone()).await {
+        Ok(_) => {}
+        Err(e) => println!("{}", e.to_string()),
+    };
 
-    tick(token, user, TICK_RATE).await;
+    match tick(token, user, TICK_RATE).await {
+        Ok(_) => {}
+        Err(e) => println!("{}", e.to_string()),
+    };
 }
 
 /// Interacts with Twitch Events such as subs and channel points spending
-async fn start_pubsub_session(token: UserOauthToken, user: UserData) {
-    let pubsub_url = Url::from_str("wss://pubsub-edge.twitch.tv").unwrap();
+async fn start_pubsub_session(token: UserOauthToken, user: UserData) -> Result<(), Box<dyn Error>> {
+    let pubsub_url = Url::from_str("wss://pubsub-edge.twitch.tv")?;
     // create PubSub-WebSocket
     let pubsub_session = WebSocketSession::new(
         user.clone(),
@@ -130,11 +108,12 @@ async fn start_pubsub_session(token: UserOauthToken, user: UserData) {
         };
     //
     WebSocketSession::initialize(pubsub_arc, on_pubsub_start).await;
+    Ok(())
 }
 
 /// Interacts with Twitch IRC chat in a designated channel
-async fn start_chat_session(token: UserOauthToken, user: UserData) {
-    let chat_url = websocket::url::Url::from_str("wss://irc-ws.chat.twitch.tv:443").unwrap();
+async fn start_chat_session(token: UserOauthToken, user: UserData) -> Result<(), Box<dyn Error>> {
+    let chat_url = websocket::url::Url::from_str("wss://irc-ws.chat.twitch.tv:443")?;
     // create Chat-IRC
     let chat_session = WebSocketSession::new(
         user.clone(),
@@ -149,10 +128,7 @@ async fn start_chat_session(token: UserOauthToken, user: UserData) {
     let token_temp = token.clone();
     let user_temp = user.clone();
     let on_chat_start =
-        move |session: &mut WebSocketSession<
-            DefaultMessageParser<DefaultLogger>,
-            DefaultLogger,
-        >,
+        move |session: &mut WebSocketSession<DefaultMessageParser, DefaultLogger>,
               listener: &mut websocket::sync::Client<TlsStream<TcpStream>>| {
             // authenticate user (login)
             session.send_string(
@@ -172,19 +148,17 @@ async fn start_chat_session(token: UserOauthToken, user: UserData) {
             );
         };
     WebSocketSession::initialize(chat_irc_arc.clone(), on_chat_start).await;
+    Ok(())
 }
 
 /// Get OAuth token and the logged in client_user's info
-async fn init_token_and_user<TLogger>(logger: &TLogger) -> (UserOauthToken, UserData)
+async fn init_token_and_user<TLogger>(
+    logger: &TLogger,
+) -> Result<(UserOauthToken, UserData), Box<dyn Error>>
 where
     TLogger: Logger,
 {
-    let client = {
-        match Client::builder().build() {
-            Ok(client) => client,
-            Err(..) => panic!("Error creating client in main.rs!"),
-        }
-    };
+    let client = Client::builder().build()?;
 
     // get user token
     let token = UserOauthToken::request(
@@ -193,25 +167,25 @@ where
         CLIENT_SECRET,
         logger,
     )
-    .await;
+    .await?;
 
     // get logged in user's info
     let user_data =
-        user::user_data::Data::get_from_bearer_token(&client, token.clone(), logger).await;
+        user::user_data::UserData::get_from_bearer_token(&client, token.clone(), logger).await?;
 
-    (token, user_data)
+    Ok((token, user_data))
 }
 
-async fn tick(token: UserOauthToken, user: UserData, tick_rate: u64) {
-    let reqwest_client = reqwest::Client::builder().build().unwrap();
+async fn tick(token: UserOauthToken, user: UserData, tick_rate: u64) -> Result<(), Box<dyn Error>> {
+    let reqwest_client = reqwest::Client::builder().build()?;
     let mut tick_data = Default::default();
 
-    delay_for(Duration::from_millis(tick_rate)).await; // don't trigger before WebSockets start
+    sleep(Duration::from_millis(tick_rate)).await; // don't trigger before WebSockets start
 
     loop {
         let before_tick_instant = Instant::now();
 
-        tick_routine(&reqwest_client, user.clone(), token.clone(), &mut tick_data).await;
+        tick_routine(&reqwest_client, user.clone(), token.clone(), &mut tick_data).await?;
 
         let tick_elapsed_time = {
             match u64::try_from(before_tick_instant.elapsed().as_millis()) {
@@ -225,7 +199,7 @@ async fn tick(token: UserOauthToken, user: UserData, tick_rate: u64) {
                 Err(_) => tick_rate - 1,
             }
         };
-        delay_for(Duration::from_millis(tick_rate - tick_elapsed_time)).await;
+        sleep(Duration::from_millis(tick_rate - tick_elapsed_time)).await;
     }
 }
 //
@@ -234,24 +208,25 @@ async fn tick_routine(
     client_user: UserData,
     bearer_token: UserOauthToken,
     tick_data: &mut TickData,
-) {
-    let chatter_data = ChatterData::from_channel(&reqwest_client, client_user.get_login()).await;
+) -> Result<(), Box<dyn Error>> {
+    let chatter_data = ChatterData::from_channel(&reqwest_client, client_user.get_login()).await?;
 
     let viewers = chatter_data.get_all_viewers(true, true);
 
     let mut header_map = HeaderMap::new();
-    let client_header = bearer_token.get_client_id().get_header();
-    let header_name = HeaderName::from_str(client_header.get_name().as_str()).unwrap();
+    let client_header = bearer_token.get_client_id().get_header()?;
+    let header_name = HeaderName::from_str(client_header.key.as_str())?;
     header_map.append(
         header_name,
-        HeaderValue::from_str(bearer_token.get_client_id().value.as_str()).unwrap(),
+        HeaderValue::from_str(bearer_token.get_client_id().value.as_str())?,
     );
     let bearer_header = bearer_token.get_oauth_bearer_header();
-    let header_name = HeaderName::from_str(bearer_header.get_name().as_str()).unwrap();
-    header_map.append(header_name, bearer_header.get_value());
+    let header_name = HeaderName::from_str(bearer_header.key.as_str())?;
+    header_map.append(header_name, bearer_header.value);
 
     let viewer_datas =
-        UserData::get_from_usernames(reqwest_client, viewers, &DefaultLogger {}, header_map).await;
+        UserData::get_from_usernames(reqwest_client, viewers, &DefaultLogger {}, header_map)
+            .await?;
 
     tick_data.tick_on_users(
         client_user.get_user_id(),
@@ -260,14 +235,5 @@ async fn tick_routine(
             .map(|d| d.clone().get_user_id())
             .collect(),
     );
+    Ok(())
 }
-
-/*pub fn get_input_from_console(heading:&str) -> String {
-    println!();
-    println!("*****************************************************");
-    println!("{}", heading);
-    let stdin = stdin();
-    let value = stdin.lock().lines().next().unwrap().unwrap();
-
-    value
-}*/

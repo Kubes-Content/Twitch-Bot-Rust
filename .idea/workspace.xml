@@ -5,39 +5,87 @@
   </component>
   <component name="CMakeSettings">
     <configurations>
-      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" ENABLED="true" />
     </configurations>
   </component>
   <component name="CargoProjects">
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b9eaa217-6861-4b09-a51f-c8ee22571565" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/JSON/crawler/errors.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/irc_chat/commands/level.rs" afterDir="false" />
+    <list default="true" id="582489ca-546e-4eb1-9134-b0eed5b2203d" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/send_error.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/Kubes_The_Almighty.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/untitled1.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/JSON/crawler/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/JSON/crawler/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Debug/mod.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/JSON/crawler/Scope.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/JSON/crawler/errors.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/JSON/crawler/mod.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/JSON/mod.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Logger.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/OAuth/Signature.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/OAuth/Signature.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/User/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/User/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Utilities/mod.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/credentials/client_id.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/credentials/client_id.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/channel_chatter_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/channel_chatter_data.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/add_custom_text_command.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/add_custom_text_command.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/all_commands.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/all_commands.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/blame.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/blame.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/flipcoin.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/flipcoin.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/level.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/level.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/lurk.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/lurk.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/random_selection.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/random_selection.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/shoutout.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/shoutout.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/socials.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/socials.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/default_irc_message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/default_irc_message_parser.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/default_message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/default_message_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/event/channel_points_event/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/event/channel_points_event/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/listen_request.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/listen_request.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/listen_response.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/listen_response.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/response_context.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/response_context.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/syncable_web_socket.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/traits/message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/traits/message_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/twitch_message_type.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/twitch_message_type.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/web_socket_session.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/web_socket_session.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/character_handler/character_context_handler.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/character_handler/closing_curly_brace_handler.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/character_handler/mod.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/character_handler/opening_curly_brace_handler.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/json_object.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/json_property_key.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/json_property_value.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/property_type.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/reading_objects/mod.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/reading_objects/readable_type.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/reading_objects/reading_object.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/reading_objects/reading_property_key.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/reading_objects/reading_property_value.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/reading_objects/reading_string.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/reading_objects/traits/mod.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/json/crawler/reading_objects/traits/reading_object.rs" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main_tick_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main_tick_data.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/oauth/token_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/oauth/token_data.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/oauth/validation_token.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/oauth/validation_token.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/save_data/default/custom_commands_save_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/save_data/default/custom_commands_save_data.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/save_data/default/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/save_data/default/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/save_data/default/user_rpg_stats.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/save_data/default/user_rpg_stats.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/user/oauth_token.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/oauth_token.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/user/user_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/user_data.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/user/user_properties.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/user_properties.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utilities/string_ext.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/web_requests/header.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/web_requests/header.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/web_requests/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/web_requests/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/web_requests/twitch/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/web_requests/twitch/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_rpg_stats112328946-112328946.kubes" beforeDir="false" afterPath="$PROJECT_DIR$/user_rpg_stats112328946-112328946.kubes" afterDir="false" />
     </list>
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -46,196 +94,65 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="Rust File" />
-      </list>
-    </option>
-  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MacroExpansionManager">
-    <option name="directoryName" value="PbMUUPhO" />
+    <option name="directoryName" value="yhqvevcg" />
   </component>
-  <component name="ProjectId" id="1fyToUIobpaq4hDgbdYJPmg88rJ" />
-  <component name="ProjectLevelVcsManager">
-    <ConfirmationsSetting value="2" id="Add" />
+  <component name="ProjectId" id="1nslmvBD16ANQ8Y3HuAECdLrHzc" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
-    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
-    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="X:/Repos/KubesSdl2Tests" />
+    <property name="cf.first.check.clang-format" value="false" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
-    <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
-    <property name="settings.editor.selected.configurable" value="language.rust.cargo" />
   </component>
-  <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\irc_chat\traits" />
-      <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\irc\parsers\pubsub\event" />
-      <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\irc\parsers\pubsub" />
-      <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\irc\parsers" />
-      <recent name="C:\Users\Kubes The Almighty\CLionProjects\Twitch-Bot-Rust\src\irc" />
-    </key>
-  </component>
-  <component name="RunDashboard">
-    <option name="ruleStates">
-      <list>
-        <RuleState>
-          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
-        </RuleState>
-        <RuleState>
-          <option name="name" value="StatusDashboardGroupingRule" />
-        </RuleState>
-      </list>
-    </option>
-  </component>
-  <component name="RunManager" selected="Cargo Command.Debug">
-    <configuration name="Debug" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-      <option name="channel" value="DEFAULT" />
+  <component name="RunManager">
+    <configuration name="Run" type="CargoCommandRunConfiguration" factoryName="Cargo Command" nameIsGenerated="true">
       <option name="command" value="run" />
-      <option name="allFeatures" value="false" />
-      <option name="nocapture" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="backtrace" value="SHORT" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Expand untitled1" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
-      <option name="command" value="expand --bin untitled1 --color=always --theme=GitHub --tests" />
       <option name="allFeatures" value="false" />
-      <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
       <option name="backtrace" value="SHORT" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
       <method v="2">
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Expand untitled1::JSON::Crawler::PropertyType" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="channel" value="DEFAULT" />
-      <option name="command" value="expand --bin untitled1 --color=always --theme=GitHub --tests JSON::Crawler::PropertyType" />
-      <option name="allFeatures" value="false" />
-      <option name="nocapture" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="backtrace" value="SHORT" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Expand untitled1::User::UserProperties" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="channel" value="DEFAULT" />
-      <option name="command" value="expand --bin untitled1 --color=always --theme=GitHub --tests User::UserProperties" />
-      <option name="allFeatures" value="false" />
-      <option name="nocapture" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="backtrace" value="SHORT" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Expand untitled1::Utilities::StringExt" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="channel" value="DEFAULT" />
-      <option name="command" value="expand --bin untitled1 --color=always --theme=GitHub --tests Utilities::StringExt" />
-      <option name="allFeatures" value="false" />
-      <option name="nocapture" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="backtrace" value="SHORT" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Expand untitled1::save_data::default::custom_commands_save_data" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-      <option name="channel" value="DEFAULT" />
-      <option name="command" value="expand --bin untitled1 --color=always --theme=GitHub --tests save_data::default::custom_commands_save_data" />
-      <option name="allFeatures" value="false" />
-      <option name="nocapture" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="backtrace" value="SHORT" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <list>
-      <item itemvalue="Cargo Command.Expand untitled1::save_data::default::custom_commands_save_data" />
-      <item itemvalue="Cargo Command.Debug" />
-      <item itemvalue="Cargo Command.Expand untitled1::User::UserProperties" />
-      <item itemvalue="Cargo Command.Expand untitled1::JSON::Crawler::PropertyType" />
-      <item itemvalue="Cargo Command.Expand untitled1" />
-      <item itemvalue="Cargo Command.Expand untitled1::Utilities::StringExt" />
-    </list>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Cargo Command.Expand untitled1::Utilities::StringExt" />
-        <item itemvalue="Cargo Command.Expand untitled1" />
-        <item itemvalue="Cargo Command.Expand untitled1::JSON::Crawler::PropertyType" />
-        <item itemvalue="Cargo Command.Expand untitled1::User::UserProperties" />
-      </list>
-    </recent_temporary>
   </component>
   <component name="RustProjectSettings">
-    <option name="externalLinter" value="Clippy" />
-    <option name="externalLinterArguments" value="--target=stable-x86_64-pc-windows-gnu" />
-    <option name="macroExpansionEngine" value="NEW" />
-    <option name="runExternalLinterOnTheFly" value="true" />
-    <option name="runRustfmtOnSave" value="true" />
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
     <option name="version" value="2" />
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="b9eaa217-6861-4b09-a51f-c8ee22571565" name="Default Changelist" comment="" />
-      <created>1597189507595</created>
+      <changelist id="582489ca-546e-4eb1-9134-b0eed5b2203d" name="Default Changelist" comment="" />
+      <created>1612186842128</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1597189507595</updated>
+      <updated>1612186842128</updated>
+      <workItem from="1612186843230" duration="137000" />
+      <workItem from="1612186999242" duration="2673000" />
+      <workItem from="1612190147722" duration="7587000" />
     </task>
     <servers />
-  </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State>
-              <option name="COLUMN_ORDER" />
-            </State>
-          </value>
-        </entry>
-      </map>
-    </option>
-  </component>
-  <component name="VcsManagerConfiguration">
-    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/json/crawler/json_object.rs</url>
-          <line>55</line>
-          <option name="timeStamp" value="103" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/irc_chat/parsers/pubsub/event/channel_points_event/mod.rs</url>
-          <line>47</line>
-          <option name="timeStamp" value="133" />
+          <url>file://$PROJECT_DIR$/src/irc_chat/parsers/default_irc_message_parser.rs</url>
+          <line>416</line>
+          <option name="timeStamp" value="15" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

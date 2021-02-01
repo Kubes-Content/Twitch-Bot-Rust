@@ -9,16 +9,18 @@ use crate::credentials::access_scopes::get_all_scopes;
 use crate::credentials::bot_user_credentials::REDIRECT_URI;
 use crate::credentials::client_id::ClientId;
 use crate::credentials::client_secret::ClientSecret;
-use crate::json::crawler::crawl_json;
-use crate::json::crawler::json_object::JsonObject;
-use crate::logger::Logger;
 use crate::oauth::has_oauth_signature::HasOauthSignature;
 use crate::oauth::signature::Signature;
 use crate::oauth::token_data::TokenData;
 use crate::oauth::validation_token::ValidationToken;
-use crate::web_requests::header::Header as WebRequestHeader;
 use crate::web_requests::twitch::{request_data, TwitchRequestResponse};
-use crate::web_requests::{is_html, is_json, post_request, request};
+use crate::web_requests::Header as WebRequestHeader;
+use crate::web_requests::WEB_REQUEST_ATTEMPTS;
+use kubes_std_lib::logging::Logger;
+use kubes_web_lib::json::crawler::crawl_json;
+use kubes_web_lib::web_request::{is_html, is_json, request, RequestType};
+use std::error::Error;
+use url::Url;
 
 primitive_wrapper!(OauthToken, TokenData, "{}");
 
@@ -39,39 +41,51 @@ impl HasOauthSignature for OauthToken {
 }
 
 impl OauthToken {
-    pub async fn request<TLogger>(
+    pub async fn request<TLogger: Logger>(
         web_client: &Client,
         client_id: ClientId,
         client_secret: ClientSecret,
         logger: &TLogger,
-    ) -> OauthToken
-    where
-        TLogger: Logger,
-    {
+    ) -> Result<OauthToken, Box<dyn Error>> {
         let url_authoritive_flow = format!("https://id.twitch.tv/oauth2/authorize?client_id={0}&redirect_uri={1}&response_type=code&scope={2}", client_id.value, REDIRECT_URI, get_all_scopes());
 
         println!("{}", url_authoritive_flow);
 
         let headers = HeaderMap::new();
 
-        let authorization_response =
-            request(web_client, url_authoritive_flow.as_str(), headers.clone()).await;
+        let url = Url::parse(url_authoritive_flow.as_str())?;
+
+        let authorization_response = match request(
+            web_client,
+            url,
+            RequestType::Get,
+            headers.clone(),
+            WEB_REQUEST_ATTEMPTS,
+        )
+        .await
+        {
+            Ok(r) => r,
+            Err(e) => {
+                println!("{}", e.to_string());
+                panic!("");
+            }
+        };
 
         let authorization = {
             let mut authorization = String::new();
-            if !is_html(&authorization_response, logger) {
-                println!("{}", authorization_response.text().await.unwrap());
+            if !is_html(&authorization_response, logger)? {
+                println!("{}", authorization_response.text().await?);
 
                 panic!("HTML EXPECTED");
             } else {
-                open::that(authorization_response.url().as_str()).unwrap();
+                open::that(authorization_response.url().as_str())?;
 
                 // listen for oauth redirect
-                let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+                let listener = TcpListener::bind("127.0.0.1:7878")?;
                 for stream in listener.incoming() {
-                    let mut stream = stream.unwrap();
+                    let mut stream = stream?;
                     let mut buffer = [0; 4096];
-                    stream.read(&mut buffer).unwrap();
+                    stream.read(&mut buffer)?;
                     let received_request = String::from_utf8_lossy(&buffer[..]).to_string();
                     let get_authorization_code = |string: String| {
                         println!("Request: {}", string);
@@ -114,28 +128,30 @@ impl OauthToken {
 
         let url_request_access_token = format!("https://id.twitch.tv/oauth2/token?client_id={0}&client_secret={1}&code={2}&grant_type=authorization_code&redirect_uri={3}", client_id.value, client_secret.value, authorization, REDIRECT_URI);
 
-        let token_response = post_request(
+        let token_response = request(
             web_client,
-            url_request_access_token.as_str(),
+            Url::parse(url_request_access_token.as_str())?,
+            RequestType::Post {
+                body: String::from(""),
+            },
             headers.clone(),
+            WEB_REQUEST_ATTEMPTS,
         )
-        .await;
+        .await
+        .unwrap();
 
         let token = {
-            if !is_json(&token_response, logger) {
+            if !is_json(&token_response, logger)? {
                 panic!("EXPECTED JSON");
             }
 
-            match crawl_json(token_response.text().await.unwrap().as_str()) {
+            match crawl_json(token_response.text().await?.as_str()) {
                 Ok(token_json) => TokenData::from_json(token_json, client_id),
-                Err(_) => panic!("Failed to retrieve oauth token."),
+                Err(e) => panic!("Failed to retrieve oauth token. Error: {}", e),
             }
         };
 
-        //let token = get_input_from_console("Upon authorizing your account, please post the URL of the page you are redirected to into the console to finalize authorization.");
-
-        OauthToken::new(token)
-        //        OauthToken::new(TokenData::from_str(authorization.as_str(), client_id.value))
+        Ok(OauthToken::new(token))
     }
 
     pub fn get_client_id(&self) -> ClientId {

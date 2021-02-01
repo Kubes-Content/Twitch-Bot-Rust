@@ -27,6 +27,7 @@ pub trait Serializable {
         Self: Sized;
 }
 
+#[allow(dead_code)]
 pub struct JsonString {
     value: String,
 }
