@@ -20,6 +20,8 @@ use async_trait::async_trait;
 use kubes_std_lib::text::impl_to_string::{begins_with, remove_within};
 use std::{collections::HashMap, string::ToString, sync::Arc};
 use tokio::sync::Mutex;
+use crate::user::user_properties::UserId;
+
 
 pub type UserCommandsMap = HashMap<String, RereferenceableChatCommand>;
 
@@ -50,29 +52,12 @@ impl MessageParser for DefaultMessageParser {
         if begins_with(&response_received, TMI_TWITCH) {
             deconstructing_response = remove_within(&deconstructing_response, TMI_TWITCH);
 
-            match &deconstructing_response[..3] {
-                "001" => { /*Welcome, GLHF*/ }
-                "002" => { /*Your host is tmi.twitch.tv*/ }
-                "003" => { /*This server is rather new*/ }
-                "004" => { /*-*/ }
-                "372" => { /*You are in a maze of twisty passages, all alike.*/ }
-                "375" => { /*-*/ }
-                "376" => { /*>*/ }
-                "421" => { /* Unknown command */ }
-                _ => {
-                    println!(
-                        "IRC parser Not aware of Twitch-code {0} for line: {1}",
-                        deconstructing_response[..3].to_string(),
-                        response_received
-                    );
-                }
-            }
+            return self.process_twitch_irc_code(&deconstructing_response[..3]);
         } else if begins_with(&response_received, "PING ") {
             get_result(context_mutex.try_lock())?
                 .add_response_to_reply_with(String::from("PONG :tmi.twitch.tv"));
         } else {
-            let z = self.decipher_response_message(context_mutex.clone()).await;
-            match z {
+            match self.decipher_response_message(context_mutex.clone()).await {
                 Err(e) => println!(
                     "IF THIS ISNT A USER MESSAGE.... WTF IS IT?? {}",
                     e.to_string()
@@ -115,6 +100,26 @@ impl MessageParser for DefaultMessageParser {
 }
 
 impl DefaultMessageParser {
+    pub fn process_twitch_irc_code(&self, code: &str) -> Result<(), Box<dyn SendError>> {
+        match code {
+            "001" => { /*Welcome, GLHF*/ }
+            "002" => { /*Your host is tmi.twitch.tv*/ }
+            "003" => { /*This server is rather new*/ }
+            "004" => { /*-*/ }
+            "372" => { /*You are in a maze of twisty passages, all alike.*/ }
+            "375" => { /*-*/ }
+            "376" => { /*>*/ }
+            "421" => { /* Unknown command */ }
+            _ => {
+                println!(
+                    "IRC parser Not aware of Twitch-code {0}.",
+                    code.to_string()
+                );
+            }
+        }
+        Ok(())
+    }
+
     pub fn get_user_command(&self, key: &str) -> Option<&RereferenceableChatCommand> {
         self.user_commands.get(key)
     }
@@ -400,16 +405,7 @@ impl DefaultMessageParser {
             };
         }
 
-        if get_option(
-            message.get_message_body().chars().next(),
-            "NoneError".to_string(),
-        )? != '!'
-            || message.get_message_body().len() == 1
-        {
-            return Err(Box::new(KubesError {
-                error: "Twitch - invalid message.".to_string(),
-            }));
-        }
+        self.verify_message(&message)?;
 
         let message_body = message.get_message_body();
 
@@ -427,9 +423,17 @@ impl DefaultMessageParser {
             temp
         };
 
-        // try to trigger command
+        // if not a native command, try running as a custom command
+        if !self.execute_native_command(command.clone(), command_args.clone(), channel_id.clone(), message.clone(), context_mutex.clone()).await? {
+            self.execute_custom_command(command, command_args, channel_id, message, context_mutex).await?;
+        }
+
+        Ok(())
+    }
+
+    async fn execute_native_command(&self, command: String, command_args: Vec<String>, _channel: UserId, message: TwitchIrcUserMessage,
+                                    context_mutex: Arc<tokio::sync::Mutex<ResponseContext>>) -> Result<bool, Box<dyn SendError>> {
         if let Some(command_func) = self.user_commands.get(command.as_str()) {
-            let command_func = command_func.clone();
             command_func
                 .lock()
                 .await
@@ -447,9 +451,11 @@ impl DefaultMessageParser {
                 command
             );
 
-            return Ok(());
-        } else if let Some(command_func) =
-            self.user_commands_alternate_keywords.get(command.as_str())
+            return Ok(true);
+        }
+
+        if let Some(command_func) =
+        self.user_commands_alternate_keywords.get(command.as_str())
         {
             command_func
                 .lock()
@@ -463,37 +469,55 @@ impl DefaultMessageParser {
                 command
             );
 
-            return Ok(());
+            return Ok(true);
         }
 
-        // try to trigger custom command
+        Ok(false)
+    }
+
+    async fn execute_custom_command(&self, command: String, command_args: Vec<String>, channel: UserId, message: TwitchIrcUserMessage,
+                                    context_mutex: Arc<tokio::sync::Mutex<ResponseContext>>) -> Result<bool, Box<dyn SendError>> {
         let custom_commands =
-            get_result_dyn(CustomCommandsSaveData::load_or_default(channel_id))?.get_commands();
+            get_result_dyn(CustomCommandsSaveData::load_or_default(channel))?.get_commands();
 
+
+        // command exists?
         if !(custom_commands.contains_key(command.as_str())) {
-            return Err(Box::new(KubesError {
-                error: "".to_string(),
-            }));
+            return Ok(false);
         }
 
+        if command_args.len() > 0 {
+            println!("Custom command triggered with extra arguments given.");
+        }
+
+        // Add custom command's text to respond with
         {
-            let mut context = get_result(context_mutex.try_lock())?;
+            let message_body = get_option(
+                custom_commands.get(command.as_str()),
+                "NoneError".to_string(),
+            )?
+                .clone();
+            let mut context = context_mutex.lock().await;
             context.add_response_to_reply_with(send_message_from_client_user_format(
                 message.get_target_channel().clone(),
-                get_option(
-                    custom_commands.get(command.as_str()),
-                    "NoneError".to_string(),
-                )?
-                .clone(),
+                message_body,
             ));
         }
 
-        println!(
-            "{0} triggered !{1}.",
-            message.get_speaker().get_value(),
-            command
-        );
+        Ok(true)
+    }
 
+    fn verify_message(&self, message: &TwitchIrcUserMessage) -> Result<(), Box<dyn SendError>> {
+        if get_option(
+            message.get_message_body().chars().next(),
+            "NoneError".to_string(),
+        )? != '!' // commands begin with "!"
+            || message.get_message_body().len() == 1
+        {
+            return Err(Box::new(KubesError {
+                error: "Twitch - invalid message.".to_string(),
+            }));
+        }
         Ok(())
     }
 }

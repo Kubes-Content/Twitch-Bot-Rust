@@ -9,6 +9,7 @@ use kubes_web_lib::json::crawler::json_property_key::JsonPropertyKey;
 use kubes_web_lib::json::crawler::json_property_value::JsonPropertyValue;
 use std::error::Error;
 
+
 #[derive(Default)]
 pub struct CustomCommandsSaveData {
     //user_data:HashMap<UserLogin, DefaultUserSaveData>
@@ -70,22 +71,10 @@ impl CustomCommandsSaveData {
     }
 
     pub fn load_or_default(channel: UserId) -> Result<Self, Box<dyn Error>> {
-        match File::open(Self::get_filename(channel)) {
-            Ok(mut file) => {
-                let mut json = String::new();
-                match file.read_to_string(&mut json) {
-                    Ok(_size) => Self::from_json(json),
-                    Err(e) => Err(Box::new(e)),
-                }
-            }
-            Err(e) => {
-                red!(
-                    "Could not retrieve file. What is the error for a missing file? Error: {}",
-                    e
-                );
-                Ok(Default::default())
-            }
-        }
+        let mut json = String::new();
+        let mut file = File::open(Self::get_filename(channel))?;
+        file.read_to_string(&mut json)?;
+        Self::from_json(json)
     }
 
     pub fn save(self, channel: UserId) {

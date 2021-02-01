@@ -13,78 +13,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="582489ca-546e-4eb1-9134-b0eed5b2203d" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/send_error.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/Kubes_The_Almighty.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/untitled1.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Debug/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/JSON/crawler/Scope.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/JSON/crawler/errors.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/JSON/crawler/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/JSON/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Logger.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/OAuth/Signature.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/OAuth/Signature.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/User/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/User/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Utilities/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/credentials/client_id.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/credentials/client_id.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/channel_chatter_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/channel_chatter_data.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/add_custom_text_command.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/add_custom_text_command.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/all_commands.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/all_commands.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/blame.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/blame.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/flipcoin.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/flipcoin.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/level.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/level.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/lurk.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/lurk.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/random_selection.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/random_selection.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/shoutout.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/shoutout.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/socials.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/socials.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/default_irc_message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/default_irc_message_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/default_message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/default_message_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/event/channel_points_event/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/event/channel_points_event/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/listen_request.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/listen_request.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/listen_response.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/listen_response.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/response_context.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/response_context.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/syncable_web_socket.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/traits/message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/traits/message_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/twitch_message_type.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/twitch_message_type.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/web_socket_session.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/web_socket_session.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/json/crawler/character_handler/character_context_handler.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/json/crawler/character_handler/closing_curly_brace_handler.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/json/crawler/character_handler/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/json/crawler/character_handler/opening_curly_brace_handler.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/json/crawler/json_object.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/json/crawler/json_property_key.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/json/crawler/json_property_value.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/json/crawler/property_type.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/json/crawler/reading_objects/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/json/crawler/reading_objects/readable_type.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/json/crawler/reading_objects/reading_object.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/json/crawler/reading_objects/reading_property_key.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/json/crawler/reading_objects/reading_property_value.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/json/crawler/reading_objects/reading_string.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/json/crawler/reading_objects/traits/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/json/crawler/reading_objects/traits/reading_object.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main_tick_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main_tick_data.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/oauth/token_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/oauth/token_data.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/oauth/validation_token.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/oauth/validation_token.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/save_data/default/custom_commands_save_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/save_data/default/custom_commands_save_data.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/save_data/default/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/save_data/default/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/save_data/default/user_rpg_stats.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/save_data/default/user_rpg_stats.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/user/oauth_token.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/oauth_token.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/user/user_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/user_data.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/user/user_properties.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/user_properties.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utilities/string_ext.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/web_requests/header.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/web_requests/header.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/web_requests/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/web_requests/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/web_requests/twitch/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/web_requests/twitch/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_rpg_stats112328946-112328946.kubes" beforeDir="false" afterPath="$PROJECT_DIR$/user_rpg_stats112328946-112328946.kubes" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -127,6 +58,11 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
   </component>
   <component name="RustProjectSettings">
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
@@ -142,19 +78,8 @@
       <updated>1612186842128</updated>
       <workItem from="1612186843230" duration="137000" />
       <workItem from="1612186999242" duration="2673000" />
-      <workItem from="1612190147722" duration="7587000" />
+      <workItem from="1612190147722" duration="11753000" />
     </task>
     <servers />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/irc_chat/parsers/default_irc_message_parser.rs</url>
-          <line>416</line>
-          <option name="timeStamp" value="15" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>
