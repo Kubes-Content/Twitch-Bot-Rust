@@ -234,6 +234,6 @@ async fn tick_routine(
             .iter()
             .map(|d| d.clone().get_user_id())
             .collect(),
-    );
+    )?;
     Ok(())
 }

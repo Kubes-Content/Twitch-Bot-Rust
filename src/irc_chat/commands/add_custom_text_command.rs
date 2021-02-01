@@ -7,6 +7,8 @@ use crate::irc_chat::{
 };
 use crate::save_data::default::custom_commands_save_data::CustomCommandsSaveData;
 use std::sync::Arc;
+use crate::send_error::get_result_dyn;
+
 
 pub fn add_custom_text_command<'r>(
     parser: DefaultMessageParser,
@@ -61,7 +63,7 @@ pub fn add_custom_text_command<'r>(
         let result = custom_commands_save_data.add_command(args[0].clone(), command_text);
 
         // save temp data
-        custom_commands_save_data.save(channel_id.clone());
+        get_result_dyn(custom_commands_save_data.save(channel_id.clone()))?;
 
         result
     };

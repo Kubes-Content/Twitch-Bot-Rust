@@ -16,6 +16,8 @@ open = "*"
 rand = "*"
 rand_core = "*"
 reqwest = "*"
+serde = { version = "*", features = ["derive"] }
+serde_json = "*"
 socket2 = "*"
 tokio = { version = "0.2.25", features = ["full"] }
 url = "*"

@@ -1,6 +1,8 @@
 use crate::save_data::default::user_rpg_stats::UserRpgStats;
 use crate::user::user_properties::UserId;
 use std::collections::HashMap;
+use std::error::Error;
+
 
 const TICKS_PER_EXP_POINT: u32 = 40;
 
@@ -10,10 +12,12 @@ pub struct TickData {
 }
 
 impl TickData {
-    pub fn tick_on_users(&mut self, channel: UserId, current_active_viewers_ids: Vec<UserId>) {
+    pub fn tick_on_users(&mut self, channel: UserId, current_active_viewers_ids: Vec<UserId>) -> Result<(), Box<dyn Error>> {
         self.remove_missing_viewers(current_active_viewers_ids.clone());
 
-        self.update_specific_viewers_data(channel, current_active_viewers_ids);
+        self.update_specific_viewers_data(channel, current_active_viewers_ids)?;
+
+        Ok(())
     }
 
     fn remove_missing_viewers(&mut self, current_active_viewers_ids: Vec<UserId>) {
@@ -36,7 +40,7 @@ impl TickData {
         &mut self,
         channel: UserId,
         current_active_viewers_ids: Vec<UserId>,
-    ) {
+    ) -> Result<(), Box<dyn Error>> {
         let previous_active_viewer_ids: Vec<UserId> =
             self.active_viewers_data.keys().map(|u| u.clone()).collect();
 
@@ -48,7 +52,7 @@ impl TickData {
                 green_ln!("Adding new viewer exp tick entry: {}", user_id.get_value());
                 self.active_viewers_data.insert(user_id.clone(), 1);
 
-                return;
+                return Ok(());
             }
 
             //
@@ -73,7 +77,7 @@ impl TickData {
                 .insert(user_id.clone(), existing_viewer_experience + 1);
 
             if self.active_viewers_data[&user_id] != TICKS_PER_EXP_POINT {
-                return;
+                return Ok(());
             }
 
             green_ln!("Giving user an exp point! id: {}", user_id.get_value());
@@ -83,13 +87,15 @@ impl TickData {
                     Ok(stats) => stats,
                     Err(e) => {
                         red!("Unable to give user an exp point {}", e);
-                        return;
+                        return Ok(());
                     }
                 };
             current_stats.add_experience_points(1);
-            current_stats.save(channel.clone(), user_id.clone());
+            current_stats.save(channel.clone(), user_id.clone())?;
 
             self.active_viewers_data.insert(user_id.clone(), 0);
         }
+
+        Ok(())
     }
 }
