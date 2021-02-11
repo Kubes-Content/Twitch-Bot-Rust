@@ -31,21 +31,21 @@ impl ChannelPointsEvent {
 
         let redemption_user_object = redemption_object.get_object_property("user".to_string());
         let redemption_user_id =
-            UserId::new(redemption_user_object.get_u32_property_value("id".to_string()));
+            UserId::from(redemption_user_object.get_u32_property_value("id".to_string()));
         let redemption_user_login =
-            UserLogin::new(redemption_user_object.get_string_property_value("login".to_string()));
+            UserLogin::from(redemption_user_object.get_string_property_value("login".to_string()));
         let redemption_user_display_name =
             redemption_user_object.get_string_property_value("display_name".to_string());
 
         // redemption object
         let channel_id =
-            UserId::new(redemption_object.get_u32_property_value("channel_id".to_string()));
+            UserId::from(redemption_object.get_u32_property_value("channel_id".to_string()));
         let redeemed_at = redemption_object.get_string_property_value("redeemed_at".to_string());
 
         let reward_object = redemption_object.get_object_property("reward".to_string());
         let reward_id = reward_object.get_string_property_value("id".to_string());
         let reward_channel_id =
-            UserId::new(reward_object.get_u32_property_value("channel_id".to_string()));
+            UserId::from(reward_object.get_u32_property_value("channel_id".to_string()));
         let reward_title = reward_object.get_string_property_value("title".to_string());
         let reward_prompt = reward_object.get_string_property_value("prompt".to_string());
         let reward_cost = reward_object.get_u32_property_value("cost".to_string());

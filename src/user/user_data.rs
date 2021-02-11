@@ -3,7 +3,6 @@ use std::str::FromStr;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::Client;
 
-use crate::send_error::KubesError;
 use crate::user::oauth_token::OauthToken;
 use crate::user::user_properties::{
     UserBroadcasterType, UserDescription, UserDisplayName, UserEmail, UserId, UserLogin,
@@ -11,6 +10,7 @@ use crate::user::user_properties::{
 };
 use crate::web_requests::twitch::{request_data, TwitchRequestResponse};
 use kubes_std_lib::logging::Logger;
+use kubes_web_lib::error::send_error;
 use kubes_web_lib::json::crawler::{
     crawl_json, json_object::JsonObject, json_property_key::JsonPropertyKey,
     json_property_value::JsonPropertyValue, property_type::PropertyType,
@@ -83,11 +83,11 @@ impl UserData {
 
         for json_object in json_object_array {
             let user_id =
-                UserId::new(json_object.get_u32_property_value(PROPERTY_NAME_USER_ID.to_string()));
-            let user_login = UserLogin::new(
+                UserId::from(json_object.get_u32_property_value(PROPERTY_NAME_USER_ID.to_string()));
+            let user_login = UserLogin::from(
                 json_object.get_string_property_value(PROPERTY_NAME_LOGIN.to_string()),
             );
-            let user_display_name = UserDisplayName::new(
+            let user_display_name = UserDisplayName::from(
                 json_object.get_string_property_value(PROPERTY_NAME_DISPLAY_NAME.to_string()),
             );
             let user_type = UserType::new_from_string(
@@ -96,16 +96,16 @@ impl UserData {
             let user_broadcaster_type = UserBroadcasterType::new_from_string(
                 json_object.get_string_property_value(PROPERTY_NAME_BROADCASTER_TYPE.to_string()),
             );
-            let user_description = UserDescription::new(
+            let user_description = UserDescription::from(
                 json_object.get_string_property_value(PROPERTY_NAME_DESCRIPTION.to_string()),
             );
-            let user_profile_url = UserProfileImageUrlFormat::new(
+            let user_profile_url = UserProfileImageUrlFormat::from(
                 json_object.get_string_property_value(PROPERTY_NAME_PROFILE_IMAGE.to_string()),
             );
-            let user_offline_url = UserOfflineImageUrlFormat::new(
+            let user_offline_url = UserOfflineImageUrlFormat::from(
                 json_object.get_string_property_value(PROPERTY_NAME_OFFLINE_IMAGE.to_string()),
             );
-            let user_view_count = UserViewCount::new(
+            let user_view_count = UserViewCount::from(
                 json_object.get_u32_property_value(PROPERTY_NAME_VIEW_COUNT.to_string()),
             );
             //
@@ -127,7 +127,7 @@ impl UserData {
                     String::from("")
                 }
             };
-            let user_email = UserEmail::new(user_email_string);
+            let user_email = UserEmail::from(user_email_string);
 
             user_data.push(UserData::new(
                 user_id,
@@ -192,7 +192,7 @@ impl UserData {
         match request_data(client, url, web_request_headers, logger).await {
 
             TwitchRequestResponse::Json { response_text } => response_text,
-            _ => return Err(Box::new(KubesError { error: "JSON EXPECTED".to_string() }))
+            _ => return Err(Box::new(send_error::new("JSON EXPECTED")))
         };
 
         Ok(UserData::from_json(
@@ -231,7 +231,7 @@ impl UserData {
         self.login.clone()
     }
 
-    pub fn get_user_id(self) -> UserId {
-        self.id
+    pub fn get_user_id(&self) -> UserId {
+        self.id.clone()
     }
 }

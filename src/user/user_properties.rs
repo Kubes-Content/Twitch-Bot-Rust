@@ -4,6 +4,15 @@ impl UserId {
     pub const LENGTH: usize = 8;
 }
 
+primitive_wrapper!(ChannelId, UserId, "(Channel: {})");
+impl From<u32> for ChannelId {
+    fn from(v: u32) -> Self {
+        ChannelId {
+            value: UserId { value: v },
+        }
+    }
+}
+
 primitive_wrapper!(UserLogin, String, "(User Login: {})");
 
 primitive_wrapper!(UserDisplayName, String, "(User Display Name: {})");
@@ -31,10 +40,10 @@ primitive_wrapper!(UserType, UserTypeEnum, "(User Type: {})");
 impl UserType {
     pub fn new_from_string(string_value: String) -> UserType {
         match string_value.as_str() {
-            "" => UserType::new(UserTypeEnum::Basic),
-            "admin" => UserType::new(UserTypeEnum::Admin),
-            "global_mod" => UserType::new(UserTypeEnum::GlobalMod),
-            "staff" => UserType::new(UserTypeEnum::Staff),
+            "" => UserType::from(UserTypeEnum::Basic),
+            "admin" => UserType::from(UserTypeEnum::Admin),
+            "global_mod" => UserType::from(UserTypeEnum::GlobalMod),
+            "staff" => UserType::from(UserTypeEnum::Staff),
             _ => {
                 panic!("INCORRECT ENUM NAME '{}'", string_value)
             }
@@ -42,7 +51,7 @@ impl UserType {
     }
 }
 
-#[derive(Clone, PartialEq, Hash)]
+#[derive(Clone, Debug, PartialEq, Hash)]
 pub enum UserBroadcasterTypeEnum {
     Basic,
     Affiliate,
@@ -50,12 +59,7 @@ pub enum UserBroadcasterTypeEnum {
 }
 impl ToString for UserBroadcasterTypeEnum {
     fn to_string(&self) -> String {
-        match self {
-            UserBroadcasterTypeEnum::Basic => "Basic",
-            UserBroadcasterTypeEnum::Affiliate => "Affiliate",
-            UserBroadcasterTypeEnum::Partner => "Partner",
-        }
-        .to_string()
+        format!("{:?}", self)
     }
 }
 
@@ -68,9 +72,9 @@ primitive_wrapper!(
 impl UserBroadcasterType {
     pub fn new_from_string(string_value: String) -> UserBroadcasterType {
         match string_value.as_str() {
-            "" => UserBroadcasterType::new(UserBroadcasterTypeEnum::Basic),
-            "affiliate" => UserBroadcasterType::new(UserBroadcasterTypeEnum::Affiliate),
-            "partner" => UserBroadcasterType::new(UserBroadcasterTypeEnum::Partner),
+            "" => UserBroadcasterType::from(UserBroadcasterTypeEnum::Basic),
+            "affiliate" => UserBroadcasterType::from(UserBroadcasterTypeEnum::Affiliate),
+            "partner" => UserBroadcasterType::from(UserBroadcasterTypeEnum::Partner),
             _ => {
                 panic!("INCORRECT ENUM VALUE RECEIVED value='{}'", string_value)
             }

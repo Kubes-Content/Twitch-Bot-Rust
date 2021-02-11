@@ -5,8 +5,7 @@ extern crate colour;
 extern crate kubes_std_lib;
 extern crate tokio;
 
-use crate::main_tick_data::TickData;
-use credentials::client_id::ClientId;
+use crate::{main_tick_data::TickData, user::user_properties::ChannelId};
 use irc_chat::{
     channel_chatter_data::ChatterData,
     parsers::{
@@ -23,8 +22,8 @@ use reqwest::{
     Client,
 };
 use secrets::{CLIENT_ID, CLIENT_SECRET};
-use std::error::Error;
-use std::{convert::TryFrom, str::FromStr, sync::Arc, time::Instant};
+use serde::{Deserialize, Serialize};
+use std::{convert::TryFrom, error::Error, str::FromStr, sync::Arc, time::Instant};
 use tokio::time::{delay_for as sleep, Duration};
 use user::{oauth_token::OauthToken as UserOauthToken, user_data::UserData};
 use websocket::{
@@ -38,73 +37,68 @@ pub mod main_tick_data;
 pub mod oauth;
 pub mod save_data;
 pub mod secrets;
-mod send_error;
 pub mod user;
 pub mod web_requests;
 
 const TICK_RATE: u64 = 1000;
 
+fn get_pubsub_secure_url() -> Url {
+    Url::from_str("wss://pubsub-edge.twitch.tv").unwrap()
+}
+
 #[tokio::main]
-async fn main() {
-    let (token, user) = match init_token_and_user(&DefaultLogger {}).await {
-        Ok(r) => r,
-        Err(e) => {
-            println!("{}", e.to_string());
-            return;
-        }
-    };
+async fn main() -> Result<(), Box<dyn Error>> {
+    let (token, user) = init_token_and_user(&DefaultLogger {}).await?;
 
-    match start_chat_session(token.clone(), user.clone()).await {
-        Ok(_) => {}
-        Err(e) => println!("{}", e.to_string()),
-    };
+    start_chat_session(token.clone(), user.clone()).await?;
 
-    match start_pubsub_session(token.clone(), user.clone()).await {
-        Ok(_) => {}
-        Err(e) => println!("{}", e.to_string()),
-    };
+    start_pubsub_session(token.clone(), user.clone()).await?;
 
-    match tick(token, user, TICK_RATE).await {
-        Ok(_) => {}
-        Err(e) => println!("{}", e.to_string()),
-    };
+    tick(token, user, TICK_RATE).await
+}
+
+#[derive(Deserialize, Serialize)]
+struct ClientToServerRequest {
+    r#type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    nonce: Option<String>,
+    data: ClientToServerRequestData,
+}
+
+#[derive(Deserialize, Serialize)]
+struct ClientToServerRequestData {
+    topics: Vec<String>,
+    auth_token: String,
 }
 
 /// Interacts with Twitch Events such as subs and channel points spending
 async fn start_pubsub_session(token: UserOauthToken, user: UserData) -> Result<(), Box<dyn Error>> {
-    let pubsub_url = Url::from_str("wss://pubsub-edge.twitch.tv")?;
     // create PubSub-WebSocket
-    let pubsub_session = WebSocketSession::new(
-        user.clone(),
-        token.clone(),
-        DefaultPubSubParser::new(),
-        DefaultLogger {},
-        pubsub_url,
-    );
-    let pubsub_arc = Arc::new(tokio::sync::Mutex::new(pubsub_session));
+    let pubsub_arc = {
+        let pubsub_session = WebSocketSession::new(
+            DefaultPubSubParser::new(ChannelId::from(user.get_user_id()), token.clone()),
+            get_pubsub_secure_url(),
+        );
+        Arc::new(tokio::sync::Mutex::new(pubsub_session))
+    };
 
-    let temp_channel_id = user.clone().get_user_id().get_value();
-    let temp_oauth = token.clone().get_oauth_signature().get_value();
+    let start_request = serde_json::to_string(&ClientToServerRequest {
+        r#type: "LISTEN".to_string(),
+        nonce: Some("333".to_string()),
+        data: ClientToServerRequestData {
+            topics: vec![format!(
+                "channel-points-channel-v1.{}",
+                user.clone().get_user_id().get_value()
+            )],
+            auth_token: token.clone().get_oauth_signature().get_value(),
+        },
+    })?;
+
     //
     let on_pubsub_start =
-        move |session: &mut WebSocketSession<DefaultPubSubParser, DefaultLogger>,
+        move |session: &mut WebSocketSession<DefaultPubSubParser>,
               listener: &mut websocket::sync::Client<TlsStream<TcpStream>>| {
-            session.send_string(
-                listener,
-                format!(
-                    "{{\
-        \"type\": \"LISTEN\",\
-        \"nonce\": \"333\",\
-        \"data\": {{\
-        \"topics\": [
-        \"channel-points-channel-v1.{0}\"
-        ],\
-        \"auth_token\": \"{1}\"\
-        }}
-        }}",
-                    temp_channel_id, temp_oauth
-                ),
-            );
+            session.send_string(listener, start_request);
         };
     //
     WebSocketSession::initialize(pubsub_arc, on_pubsub_start).await;
@@ -116,10 +110,7 @@ async fn start_chat_session(token: UserOauthToken, user: UserData) -> Result<(),
     let chat_url = websocket::url::Url::from_str("wss://irc-ws.chat.twitch.tv:443")?;
     // create Chat-IRC
     let chat_session = WebSocketSession::new(
-        user.clone(),
-        token.clone(),
-        DefaultMessageParser::new(),
-        DefaultLogger {},
+        DefaultMessageParser::new(user.clone(), token.clone()),
         chat_url,
     );
     //
@@ -128,7 +119,7 @@ async fn start_chat_session(token: UserOauthToken, user: UserData) -> Result<(),
     let token_temp = token.clone();
     let user_temp = user.clone();
     let on_chat_start =
-        move |session: &mut WebSocketSession<DefaultMessageParser, DefaultLogger>,
+        move |session: &mut WebSocketSession<DefaultMessageParser>,
               listener: &mut websocket::sync::Client<TlsStream<TcpStream>>| {
             // authenticate user (login)
             session.send_string(
@@ -147,7 +138,7 @@ async fn start_chat_session(token: UserOauthToken, user: UserData) -> Result<(),
                 format!("JOIN #{}", user_temp.get_login().get_value()),
             );
         };
-    WebSocketSession::initialize(chat_irc_arc.clone(), on_chat_start).await;
+    WebSocketSession::initialize(chat_irc_arc, on_chat_start).await;
     Ok(())
 }
 
@@ -161,13 +152,7 @@ where
     let client = Client::builder().build()?;
 
     // get user token
-    let token = UserOauthToken::request(
-        &client,
-        ClientId::new(CLIENT_ID.to_string()),
-        CLIENT_SECRET,
-        logger,
-    )
-    .await?;
+    let token = UserOauthToken::request(&client, CLIENT_ID.clone(), CLIENT_SECRET, logger).await?;
 
     // get logged in user's info
     let user_data =
@@ -209,21 +194,23 @@ async fn tick_routine(
     bearer_token: UserOauthToken,
     tick_data: &mut TickData,
 ) -> Result<(), Box<dyn Error>> {
-    let chatter_data = ChatterData::from_channel(&reqwest_client, client_user.get_login()).await?;
-
-    let viewers = chatter_data.get_all_viewers(true, true);
-
+    // Headers
     let mut header_map = HeaderMap::new();
+    // Client Header
     let client_header = bearer_token.get_client_id().get_header()?;
     let header_name = HeaderName::from_str(client_header.key.as_str())?;
     header_map.append(
         header_name,
         HeaderValue::from_str(bearer_token.get_client_id().value.as_str())?,
     );
+    // Bearer Header
     let bearer_header = bearer_token.get_oauth_bearer_header();
     let header_name = HeaderName::from_str(bearer_header.key.as_str())?;
     header_map.append(header_name, bearer_header.value);
 
+    //
+    let chatter_data = ChatterData::from_channel(&reqwest_client, client_user.get_login()).await?;
+    let viewers = chatter_data.get_all_viewers(true, true);
     let viewer_datas =
         UserData::get_from_usernames(reqwest_client, viewers, &DefaultLogger {}, header_map)
             .await?;

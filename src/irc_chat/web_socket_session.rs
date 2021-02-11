@@ -1,13 +1,9 @@
 use crate::{
     irc_chat::{response_context::ResponseContext, traits::message_parser::MessageParser},
-    user::{
-        oauth_token::OauthToken as UserOauthToken, user_data::UserData, user_properties::UserLogin,
-    },
+    user::user_properties::UserLogin,
 };
-use kubes_std_lib::logging::Logger;
 
 use std::{
-    ops::Deref,
     sync::{Arc, Mutex},
     thread::sleep,
     time::Instant,
@@ -22,41 +18,23 @@ use websocket::{
 };
 
 #[allow(dead_code)]
-pub struct WebSocketSession<TParser: MessageParser, TLogger: Logger + Clone> {
+pub struct WebSocketSession<TParser: MessageParser<TParser>> {
     irc_url: Url,
     message_parser: TParser,
-    client_user: UserData,
-    user_token: UserOauthToken,
-    logger: TLogger,
     tick_rate_ms: u64,
     last_tick: Instant,
 }
 
-unsafe impl<TParser: MessageParser, TLogger: Logger + Clone> Sync
-    for WebSocketSession<TParser, TLogger>
-{
-}
+unsafe impl<TParser: MessageParser<TParser>> Sync for WebSocketSession<TParser> {}
 
-unsafe impl<TParser: MessageParser, TLogger: Logger + Clone> Send
-    for WebSocketSession<TParser, TLogger>
-{
-}
+unsafe impl<TParser: MessageParser<TParser>> Send for WebSocketSession<TParser> {}
 
-impl<TParser: MessageParser, TLogger: Logger + Clone> WebSocketSession<TParser, TLogger> {
+impl<TParser: MessageParser<TParser>> WebSocketSession<TParser> {
     //  Constructor
-    pub fn new(
-        client_user: UserData,
-        new_token: UserOauthToken,
-        new_message_parser: TParser,
-        new_logger: TLogger,
-        url: Url,
-    ) -> WebSocketSession<TParser, TLogger> {
+    pub fn new(new_message_parser: TParser, url: Url) -> WebSocketSession<TParser> {
         WebSocketSession {
             irc_url: url,
-            client_user,
-            user_token: new_token,
             message_parser: new_message_parser,
-            logger: new_logger,
             tick_rate_ms: 1000,
             last_tick: Instant::now(),
         }
@@ -73,7 +51,7 @@ impl<TParser: MessageParser, TLogger: Logger + Clone> WebSocketSession<TParser, 
         // Pre-listen
         let mut irc_listener;
         {
-            let local_mutex = self_arc.deref().lock().await;
+            let local_mutex = self_arc.lock().await;
             let mut self_ref = local_mutex;
 
             // Init IRCListener
@@ -257,7 +235,7 @@ impl<TParser: MessageParser, TLogger: Logger + Clone> WebSocketSession<TParser, 
                 continue;
             }
 
-            self.logger.write_line(format!("RCVD: {0}", line));
+            println!("RCVD: {0}", line);
 
             self.process_response(irc_dispatcher.clone(), line.to_string())
                 .await;
@@ -270,7 +248,7 @@ impl<TParser: MessageParser, TLogger: Logger + Clone> WebSocketSession<TParser, 
         response: String,
     ) {
         let context_mutex = Arc::new(tokio::sync::Mutex::new(ResponseContext::new(
-            self.client_user.clone(),
+            &self.message_parser,
             response.to_string(),
         )));
 
@@ -289,7 +267,10 @@ impl<TParser: MessageParser, TLogger: Logger + Clone> WebSocketSession<TParser, 
                 }
             }
             Err(e) => {
-                println!("IRC PARSER FAILED TO READ LINE: {0}\n-Error:{1}", response, e);
+                println!(
+                    "IRC PARSER FAILED TO READ LINE: {0}\n-Error:{1}",
+                    response, e
+                );
             }
         }
     }

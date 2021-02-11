@@ -1,8 +1,6 @@
 use crate::save_data::default::user_rpg_stats::UserRpgStats;
 use crate::user::user_properties::UserId;
-use std::collections::HashMap;
-use std::error::Error;
-
+use std::{collections::HashMap, error::Error};
 
 const TICKS_PER_EXP_POINT: u32 = 40;
 
@@ -12,7 +10,11 @@ pub struct TickData {
 }
 
 impl TickData {
-    pub fn tick_on_users(&mut self, channel: UserId, current_active_viewers_ids: Vec<UserId>) -> Result<(), Box<dyn Error>> {
+    pub fn tick_on_users(
+        &mut self,
+        channel: UserId,
+        current_active_viewers_ids: Vec<UserId>,
+    ) -> Result<(), Box<dyn Error>> {
         self.remove_missing_viewers(current_active_viewers_ids.clone());
 
         self.update_specific_viewers_data(channel, current_active_viewers_ids)?;

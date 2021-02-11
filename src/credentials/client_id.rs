@@ -1,6 +1,5 @@
-use reqwest::header::HeaderValue;
-
 use crate::web_requests::Header;
+use kubes_web_lib::web_request::new_header;
 use std::error::Error;
 
 // use Header
@@ -11,16 +10,14 @@ pub struct ClientId {
 }
 
 impl ClientId {
-    pub fn new(new_id: String) -> ClientId {
+    const HEADER_KEY: &'static str = "Client-ID";
+
+    pub const fn new(new_id: String) -> ClientId {
         ClientId { value: new_id }
     }
 
     pub fn get_header(&self) -> Result<Header, Box<dyn Error>> {
-        const CLIENT_ID_KEY: &str = "Client-ID";
-        Ok(Header::new(
-            CLIENT_ID_KEY.to_string(),
-            HeaderValue::from_str(self.value.as_str())?,
-        ))
+        Ok(new_header(ClientId::HEADER_KEY, self.value.clone())?)
     }
 
     // get_hash_code

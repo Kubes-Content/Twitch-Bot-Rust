@@ -10,7 +10,6 @@ use crate::credentials::bot_user_credentials::REDIRECT_URI;
 use crate::credentials::client_id::ClientId;
 use crate::credentials::client_secret::ClientSecret;
 use crate::oauth::has_oauth_signature::HasOauthSignature;
-use crate::oauth::signature::Signature;
 use crate::oauth::token_data::TokenData;
 use crate::oauth::validation_token::ValidationToken;
 use crate::web_requests::twitch::{request_data, TwitchRequestResponse};
@@ -18,6 +17,7 @@ use crate::web_requests::Header as WebRequestHeader;
 use crate::web_requests::WEB_REQUEST_ATTEMPTS;
 use kubes_std_lib::logging::Logger;
 use kubes_web_lib::json::crawler::crawl_json;
+use kubes_web_lib::oauth::Signature;
 use kubes_web_lib::web_request::{is_html, is_json, request, RequestType};
 use std::error::Error;
 use url::Url;
@@ -26,7 +26,7 @@ primitive_wrapper!(OauthToken, TokenData, "{}");
 
 impl Default for OauthToken {
     fn default() -> Self {
-        OauthToken::new(TokenData::from_str("", "".to_string()))
+        OauthToken::from(TokenData::from_str("", "".to_string()))
     }
 }
 
@@ -151,7 +151,7 @@ impl OauthToken {
             }
         };
 
-        Ok(OauthToken::new(token))
+        Ok(OauthToken::from(token))
     }
 
     pub fn get_client_id(&self) -> ClientId {

@@ -1,49 +1,39 @@
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{Read, Write};
 
-use crate::user::user_properties::UserId;
+use crate::user::user_properties::{ChannelId};
 use std::error::Error;
-use serde::{ Deserialize, Serialize };
+use kubes_std_lib::file::FileName;
+use crate::irc_chat::commands::ChatCommandKey;
+use kubes_std_lib::file;
 
 
-#[derive(Default, Deserialize, Serialize)]
-pub struct CustomCommandsSaveData {
-    //user_data:HashMap<UserLogin, DefaultUserSaveData>
-    // cmd // chat text sent by bot
-    custom_commands: HashMap<String, String>,
-}
+cloneable_serializable!(CustomCommandsSaveData, HashMap<ChatCommandKey, String>, String::from("(CustomCommandSaveData)"));
 
 impl CustomCommandsSaveData {
-    fn new(custom_commands: HashMap<String, String>) -> CustomCommandsSaveData {
-        CustomCommandsSaveData { custom_commands }
-    }
 
-    pub fn load_or_default(channel: UserId) -> Result<Self, Box<dyn Error>> {
-        let mut json = String::new();
-        let mut file = File::open(Self::get_filename(channel))?;
-        file.read_to_string(&mut json)?;
+    pub fn load_or_default(channel: ChannelId) -> Result<Self, Box<dyn Error>> {
+        let json = file::read(Self::get_filename(channel).get_value())?;
         Ok(serde_json::from_str(json.as_str())?)
     }
 
-    pub fn save(self, channel: UserId) -> Result<(), Box<dyn Error>> {
-        File::create(Self::get_filename(channel))?.write(serde_json::to_string(&self)?.as_bytes())?;
+    pub fn save(self, channel: ChannelId) -> Result<(), Box<dyn Error>> {
+        file::create(Self::get_filename(channel).get_value(), serde_json::to_string(&self)?)?;
         Ok(())
     }
 
-    fn get_filename(channel: UserId) -> String {
-        format!("{}_custom_commands.kubes", channel.get_value())
+    fn get_filename(channel: ChannelId) -> FileName {
+        FileName::from(format!("{}_custom_commands.kubes", channel.get_value().get_value()))
     }
 
     // does not auto-save file
-    pub fn add_command(&mut self, command: String, body: String) -> String {
-        match self.custom_commands.insert(command.clone(), body) {
-            None => format!("Added !{} custom command.", command),
-            Some(_) => format!("Updated !{} custom command.", command),
+    pub fn add_command(&mut self, command: ChatCommandKey, body: String) -> String {
+        match self.get_value().insert(command.clone(), body) {
+            None => format!("Added !{} custom command.", command.get_value()),
+            Some(_) => format!("Updated !{} custom command.", command.get_value()),
         }
     }
 
-    pub fn get_commands(self) -> HashMap<String, String> {
-        self.custom_commands
+    pub fn get_commands(self) -> HashMap<ChatCommandKey, String> {
+        self.get_value()
     }
 }

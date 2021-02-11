@@ -1,26 +1,23 @@
-use std::ops::Range;
-
-use crate::irc_chat::commands::{send_message_from_client_user_format, CommandFuture};
-use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
-use crate::irc_chat::{
-    response_context::ResponseContext, twitch_user_message::TwitchIrcUserMessage,
+use crate::irc_chat::commands::{
+    send_message_from_user_format, ChatCommandKey, CommandContext, CommandFutureResult,
 };
+use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
+use crate::irc_chat::twitch_user_message::TwitchIrcUserMessage;
 use crate::save_data::default::custom_commands_save_data::CustomCommandsSaveData;
-use std::sync::Arc;
-use crate::send_error::get_result_dyn;
+use crate::user::user_properties::ChannelId;
+use kubes_web_lib::error::send_result;
 
-
-pub fn add_custom_text_command<'r>(
+pub fn add_custom_text_command(
     parser: DefaultMessageParser,
     message: TwitchIrcUserMessage,
     args: Vec<String>,
-    context_mutex: Arc<tokio::sync::Mutex<ResponseContext>>,
-) -> CommandFuture {
+    context_mutex: CommandContext,
+) -> CommandFutureResult {
     let channel_id = {
-        let context = context_mutex.try_lock().expect("Error!");
-        let client_data = context.get_client_user_data();
+        let context = send_result::from(context_mutex.try_lock())?;
+        let client_data = context.parser.channel.clone();
         if message.get_target_channel() == client_data.get_login() {
-            client_data.get_user_id()
+            ChannelId::from(client_data.get_user_id())
         } else {
             println!(
                 "Failed to add custom command as the target channel is not the client user's."
@@ -45,31 +42,26 @@ pub fn add_custom_text_command<'r>(
 
             let mut temp = String::new();
 
-            let range = Range { start: 1, end: args.len() };
-            for index in range {
+            for index in 1..args.len() {
                 temp = format!("{0}{1} ", temp, args[index]);
             }
 
-            // remove final space
-            temp[0..temp.len()-1].to_string()
+            temp[0..temp.len()-1 /* remove final space */ ].to_string()
         };
 
         // add command to temp data
 
-        let mut custom_commands_save_data = match CustomCommandsSaveData::load_or_default(channel_id.clone()) {
-            Ok(commands_data) => commands_data,
-            Err(e) => panic!("Error getting custom commands. Error: {}", e)
-        };
-        let result = custom_commands_save_data.add_command(args[0].clone(), command_text);
+        let mut custom_commands_save_data = send_result::from_dyn(CustomCommandsSaveData::load_or_default(channel_id.clone()))?;
+        let result = custom_commands_save_data.add_command(ChatCommandKey::from(args[0].clone()), command_text);
 
         // save temp data
-        get_result_dyn(custom_commands_save_data.save(channel_id.clone()))?;
+        send_result::from_dyn(custom_commands_save_data.save(channel_id.clone()))?;
 
         result
     };
 
-    let mut context = context_mutex.try_lock().expect("Error!");
-    context.add_response_to_reply_with(send_message_from_client_user_format(
+    let mut context = send_result::from(context_mutex.try_lock())?;
+    context.add_response_to_reply_with(send_message_from_user_format(
         message.get_target_channel(),
         return_message,
     ));
@@ -79,6 +71,6 @@ pub fn add_custom_text_command<'r>(
 
 fn is_built_in_command(parser: DefaultMessageParser, args: Vec<String>) -> bool {
     let (commands, alternate_commands) = parser.get_user_commands_including_alternates();
-
-    commands.contains_key(args[0].as_str()) || alternate_commands.contains_key(args[0].as_str())
+    commands.contains_key(&ChatCommandKey::from(args[0].to_string()))
+        || alternate_commands.contains_key(&ChatCommandKey::from(args[0].to_string()))
 }

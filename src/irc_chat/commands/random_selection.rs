@@ -1,18 +1,17 @@
-use crate::irc_chat::commands::{send_message_from_client_user_format, CommandFuture};
+use crate::irc_chat::commands::{
+    send_message_from_user_format, ChatCommandKey, CommandContext, CommandFutureResult,
+};
 use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
-use crate::irc_chat::response_context::ResponseContext;
 use crate::irc_chat::twitch_user_message::TwitchIrcUserMessage;
-use crate::send_error::{get_option, get_result};
-use std::sync::Arc;
 use kubes_std_lib::random::random_in_range_once;
-
+use kubes_web_lib::error::send_result;
 
 pub fn random_selection(
     parser: DefaultMessageParser,
     message: TwitchIrcUserMessage,
     args: Vec<String>,
-    context_mutex: Arc<tokio::sync::Mutex<ResponseContext>>,
-) -> CommandFuture {
+    context_mutex: CommandContext,
+) -> CommandFutureResult {
     let reply_to_send = {
         let mut temp = String::new();
 
@@ -36,9 +35,10 @@ pub fn random_selection(
             heads_tails_check(args[1].clone());
 
             if heads && tails {
-                let flipcoin_func = get_option(
-                    parser.user_commands.get("flipcoin"),
-                    "Missing 'flipcoin' function".to_string(),
+                let flipcoin_func = send_result::from_option(
+                    parser
+                        .user_commands
+                        .get(&ChatCommandKey::from("flipcoin".to_string())),
                 )?
                 .clone();
 
@@ -61,11 +61,9 @@ pub fn random_selection(
         temp
     };
 
-    get_result(context_mutex.try_lock())?.add_response_to_reply_with(send_message_from_client_user_format(
-         message.get_target_channel(),
-         reply_to_send,
-    ));
-
+    send_result::from(context_mutex.try_lock())?.add_response_to_reply_with(
+        send_message_from_user_format(message.get_target_channel(), reply_to_send),
+    );
 
     Ok(Box::pin(async { Ok(()) }))
 }

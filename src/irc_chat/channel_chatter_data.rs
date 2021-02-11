@@ -63,7 +63,7 @@ impl ChatterData {
         let get_user_logins = |j_o: &JsonObject, key: &str| -> Vec<UserLogin> {
             j_o.get_string_vector_property_value(key.to_string())
                 .into_iter()
-                .map(|s| UserLogin::new(s))
+                .map(|s| UserLogin::from(s))
                 .collect()
         };
         let broadcasters = get_user_logins(&json_object, BROADCASTER_PROPERTY);

@@ -16,12 +16,38 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/OAuth/Signature.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/OAuth/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/OAuth/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/credentials/client_id.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/credentials/client_id.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/channel_chatter_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/channel_chatter_data.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/add_custom_text_command.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/add_custom_text_command.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/all_commands.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/all_commands.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/blame.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/blame.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/flipcoin.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/flipcoin.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/level.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/level.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/lurk.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/lurk.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/random_selection.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/random_selection.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/shoutout.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/shoutout.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/socials.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/socials.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/default_irc_message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/default_irc_message_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/default_message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/default_message_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/event/channel_points_event/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/event/channel_points_event/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/response_context.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/response_context.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/traits/message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/traits/message_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/web_socket_session.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/web_socket_session.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main_tick_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main_tick_data.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/oauth/has_oauth_signature.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/oauth/has_oauth_signature.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/oauth/token_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/oauth/token_data.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/save_data/default/custom_commands_save_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/save_data/default/custom_commands_save_data.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/save_data/default/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/save_data/default/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/save_data/default/user_rpg_stats.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/save_data/default/user_rpg_stats.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/send_error.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/user/oauth_token.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/oauth_token.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/user/user_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/user_data.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/user/user_properties.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/user_properties.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/web_requests/header.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/web_requests/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/web_requests/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,6 +60,14 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="yhqvevcg" />
   </component>
@@ -45,15 +79,25 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="RunOnceActivity.cidr.known.project.marker" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="cf.first.check.clang-format" value="false" />
+    <property name="cidr.known.project.marker" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../RustProjects/druid_test_000" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
+    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Rust" />
   </component>
   <component name="RunManager">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Run" type="CargoCommandRunConfiguration" factoryName="Cargo Command" nameIsGenerated="true">
       <option name="command" value="run" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
       <option name="allFeatures" value="false" />
       <option name="emulateTerminal" value="false" />
       <option name="backtrace" value="SHORT" />
@@ -64,13 +108,12 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
   </component>
   <component name="RustProjectSettings">
+    <option name="externalLinter" value="Clippy" />
+    <option name="newResolveEnabled" value="true" />
+    <option name="runExternalLinterOnTheFly" value="true" />
+    <option name="runRustfmtOnSave" value="true" />
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
     <option name="version" value="2" />
   </component>
@@ -84,8 +127,20 @@
       <updated>1612186842128</updated>
       <workItem from="1612186843230" duration="137000" />
       <workItem from="1612186999242" duration="2673000" />
-      <workItem from="1612190147722" duration="14127000" />
+      <workItem from="1612190147722" duration="17835000" />
+      <workItem from="1612212021973" duration="16787000" />
+      <workItem from="1612410572209" duration="603000" />
+      <workItem from="1612491490663" duration="10933000" />
+      <workItem from="1612535361319" duration="373000" />
+      <workItem from="1612535769107" duration="99000" />
+      <workItem from="1612544085847" duration="1798000" />
+      <workItem from="1612641074848" duration="28462000" />
+      <workItem from="1612757120035" duration="14433000" />
     </task>
     <servers />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>

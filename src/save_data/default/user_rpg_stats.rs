@@ -38,11 +38,15 @@ impl UserRpgStats {
     }
 
     pub fn get_current_level(&self) -> u32 {
+        Self::get_level_from_experience(self.experience)
+    }
+
+    pub fn get_level_from_experience(experience: u32) -> u32 {
         const EXPONENT: f32 = 1.2;
         const MULTIPLIER: f32 = 3.0;
         let mut level: u32 = 1;
 
-        while self.experience > ((level as f32).powf(EXPONENT) * MULTIPLIER) as u32 {
+        while experience >= ((level as f32).powf(EXPONENT) * MULTIPLIER) as u32 {
             level += 1;
         }
 

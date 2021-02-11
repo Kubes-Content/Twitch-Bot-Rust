@@ -6,12 +6,13 @@ edition = "2018"
 
 
 [dependencies]
-kubes_std_lib = { path = "X:/RustProjects/kubes_std_lib" }
-kubes_web_lib = { path = "X:/RustProjects/kubes_web_lib" }
+kubes_std_lib = { path = "../../RustProjects/kubes_std_lib" }
+kubes_web_lib = { path = "../../RustProjects/kubes_web_lib" }
 async-trait = "*"
 chrono = "*"
 colour = "*"
 futures = "0.3.12"
+lazy_static = "*"
 open = "*"
 rand = "*"
 rand_core = "*"

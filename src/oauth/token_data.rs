@@ -1,12 +1,12 @@
 use chrono::{DateTime, Local};
 
 use crate::credentials::client_id::ClientId;
-use crate::oauth::signature::Signature;
 use crate::oauth::validation_token::ValidationToken;
 use kubes_web_lib::json::crawler::json_object::JsonObject;
 use kubes_web_lib::json::crawler::json_property_key::JsonPropertyKey;
 use kubes_web_lib::json::crawler::json_property_value::JsonPropertyValue;
 use kubes_web_lib::json::crawler::property_type::PropertyType;
+use kubes_web_lib::oauth::Signature;
 
 #[derive(Clone, Hash)]
 pub struct TokenData {
@@ -65,7 +65,7 @@ impl TokenData {
         const PROPERTY_NAME_SCOPE: &str = "scope";
         const PROPERTY_NAME_TOKEN_TYPE: &str = "token_type";
 
-        let new_signature = Signature::new(
+        let new_signature = Signature::from(
             json_object.get_string_property_value(PROPERTY_NAME_SIGNATURE.to_string()),
         );
 
@@ -150,7 +150,7 @@ impl TokenData {
             Vec::new(),
             0,
             Local::now(),
-            Signature::new(token.to_string()),
+            Signature::from(token.to_string()),
             ClientId::new(String::from(client_id)),
         )
     }
