@@ -7,10 +7,8 @@ use crate::user::user_properties::ChannelId;
 use crate::{
     irc_chat::{
         commands::{
-            add_custom_text_command::add_custom_text_command, all_commands::all_commands,
-            blame::blame_random_user, flipcoin::flipcoin, lurk::enter_lurk,
-            random_selection::random_selection, send_message_from_user_format, shoutout::shoutout,
-            socials::socials,
+            add_custom_text_command, all_commands, blame_random_user, enter_lurk, flipcoin,
+            random_selection, send_message_from_user_format, shoutout, socials,
         },
         response_context::ResponseContext,
         traits::message_parser::MessageParser,
@@ -29,8 +27,9 @@ use kubes_web_lib::error::{
 use std::{collections::HashMap, string::ToString, sync::Arc};
 use tokio::sync::Mutex;
 
-pub type UserCommandsMap = HashMap<ChatCommandKey, RereferenceableChatCommand>;
+pub type UserNativeCommandsMap = HashMap<ChatCommandKey, RereferenceableChatCommand>;
 
+/*
 #[derive(Clone)]
 pub struct DefaultMessageParser {
     pub channel: UserData,
@@ -45,7 +44,7 @@ unsafe impl Sync for DefaultMessageParser {}
 
 #[async_trait]
 impl MessageParser<DefaultMessageParser> for DefaultMessageParser {
-    async fn process_response(&self, context_mutex: CommandContext<'_>) -> SendResult<()> {
+    async fn process_response(&self, context_mutex: CommandContext) -> SendResult<()> {
         let response_received = send_result::from(context_mutex.try_lock())?
             .get_received_response()
             .clone();
@@ -58,52 +57,56 @@ impl MessageParser<DefaultMessageParser> for DefaultMessageParser {
             deconstructing_response = remove_within(&deconstructing_response, TMI_TWITCH);
 
             return self.process_twitch_irc_code(&deconstructing_response[..3]);
-        } else if begins_with(&response_received, "PING ") {
+        }
+
+        if begins_with(&response_received, "PING ") {
             send_result::from(context_mutex.try_lock())?
                 .add_response_to_reply_with(String::from("PONG :tmi.twitch.tv"));
-        } else {
-            match self.decipher_response_message(context_mutex.clone()).await {
-                Err(e) => println!(
-                    "IF THIS ISNT A USER MESSAGE.... WTF IS IT?? {}",
-                    e.to_string()
-                ),
-                Ok(message) => {
-                    match message {
-                        TwitchIrcMessageType::Client => {
-                            //println!("Client message...");
-                        }
-                        TwitchIrcMessageType::Message(message) => {
-                            if begins_with(&message.get_message_body(), "!") {
-                                let a = self
-                                    .try_execute_command(message.clone(), context_mutex.clone());
-                                a.await?;
-                            } else {
-                                println!(
-                                    "{}'s channel: {} said {}",
-                                    message.get_target_channel().get_value(),
-                                    message.get_speaker().get_value(),
-                                    message.get_message_body()
-                                );
-                            }
-                        }
-                        TwitchIrcMessageType::JoiningChannel { joiner, channel } => {
+
+            return Ok(());
+        }
+        match self.decipher_response_message(context_mutex.clone()).await {
+            Err(e) => println!(
+                "IF THIS ISNT A USER MESSAGE.... WTF IS IT?? {}",
+                e.to_string()
+            ),
+            Ok(message) => {
+                match message {
+                    TwitchIrcMessageType::Client => {
+                        //println!("Client message...");
+                    }
+                    TwitchIrcMessageType::Message(message) => {
+                        if begins_with(&message.get_message_body(), "!") {
+                            let a =
+                                self.try_execute_command(message.clone(), context_mutex.clone());
+                            a.await?;
+                        } else {
                             println!(
-                                "({0}'s channel): {1} has JOINED the channel!",
-                                channel.get_value(),
-                                joiner.get_value()
+                                "{}'s channel: {} said {}",
+                                message.get_target_channel().get_value(),
+                                message.get_speaker().get_value(),
+                                message.get_message_body()
                             );
                         }
-                        TwitchIrcMessageType::LeavingChannel { leaver, channel } => {
-                            println!(
-                                "({0}'s channel): {1} has LEFT the channel!",
-                                channel.get_value(),
-                                leaver.get_value()
-                            );
-                        }
+                    }
+                    TwitchIrcMessageType::JoiningChannel { joiner, channel } => {
+                        println!(
+                            "({0}'s channel): {1} has JOINED the channel!",
+                            channel.get_value(),
+                            joiner.get_value()
+                        );
+                    }
+                    TwitchIrcMessageType::LeavingChannel { leaver, channel } => {
+                        println!(
+                            "({0}'s channel): {1} has LEFT the channel!",
+                            channel.get_value(),
+                            leaver.get_value()
+                        );
                     }
                 }
             }
         }
+
         Ok(())
     }
 }
@@ -130,12 +133,12 @@ impl DefaultMessageParser {
         self.user_commands.get(&key)
     }
 
-    pub async fn run_user_command(
+    /*pub async fn run_user_command(
         &self,
         key: ChatCommandKey,
         message: TwitchIrcUserMessage,
         args: Vec<String>,
-        context: Arc<tokio::sync::Mutex<ResponseContext<'_, DefaultMessageParser>>>,
+        context: Arc<tokio::sync::Mutex<ResponseContext>>,
     ) -> SendResult<()> {
         match self.user_commands.get(&key) {
             None => println!("Could not find command '{}'", key.get_value()),
@@ -148,7 +151,7 @@ impl DefaultMessageParser {
             }
         };
         Ok(())
-    }
+    }*/
 
     //pub fn get_user_commands(&self) -> HashMap<String, user_command_type!()> { self.user_commands.clone() }
 
@@ -237,7 +240,7 @@ impl DefaultMessageParser {
     // decipher for any message returned to our IrcChatSession
     async fn decipher_response_message(
         &self,
-        context_mutex: CommandContext<'_>,
+        context_mutex: CommandContext,
     ) -> Result<TwitchIrcMessageType, BoxSendError> {
         let deconstructing_response;
 
@@ -384,7 +387,7 @@ impl DefaultMessageParser {
     async fn try_execute_command(
         &self,
         message: TwitchIrcUserMessage,
-        context_mutex: CommandContext<'_>,
+        context_mutex: CommandContext,
     ) -> SendResult<()> {
         let channel_id;
         let command: ChatCommandKey;
@@ -442,7 +445,7 @@ impl DefaultMessageParser {
         command_args: Vec<String>,
         _channel: ChannelId,
         message: TwitchIrcUserMessage,
-        context_mutex: Arc<tokio::sync::Mutex<ResponseContext<'_, DefaultMessageParser>>>,
+        context_mutex: Arc<tokio::sync::Mutex<ResponseContext>>,
     ) -> SendResult<bool> {
         if let Some(command_func) = self.user_commands.get(&command) {
             command_func
@@ -526,3 +529,4 @@ impl DefaultMessageParser {
         Ok(())
     }
 }
+*/

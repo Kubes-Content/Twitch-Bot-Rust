@@ -14,7 +14,7 @@ use kubes_web_lib::{
     json::crawler::crawl_json,
 };
 use std::sync::Arc;
-
+/*
 #[allow(dead_code)]
 pub struct DefaultPubSubParser {
     channel: ChannelId,
@@ -25,11 +25,11 @@ pub struct DefaultPubSubParser {
 impl MessageParser<DefaultPubSubParser> for DefaultPubSubParser {
     async fn process_response(
         &self,
-        context_mutex: Arc<tokio::sync::Mutex<ResponseContext<'_, DefaultPubSubParser>>>,
+        context_mutex: Arc<tokio::sync::Mutex<ResponseContext>>,
     ) -> SendResult<()> {
         let json_object = {
             let context = send_result::from(context_mutex.try_lock())?;
-            send_result::from_dyn(crawl_json(context.get_received_response().as_str()))?
+            send_result::from_dyn(crawl_json(context.message.as_str()))?
         };
 
         // return if not a sub message
@@ -98,3 +98,4 @@ impl DefaultPubSubParser {
 
     // init commands fn
 }
+*/

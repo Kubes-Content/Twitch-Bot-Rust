@@ -1,16 +1,19 @@
 use crate::irc_chat::commands::{
     send_message_from_user_format, CommandContext, CommandFutureResult,
 };
-use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
+//use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
 use crate::irc_chat::twitch_user_message::TwitchIrcUserMessage;
 use crate::user::is_admin_or_mod;
+use crate::BotState;
 use kubes_web_lib::error::send_result;
+use kubes_web_lib::web_socket::Session;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 pub fn shoutout(
-    _parser: DefaultMessageParser,
+    session: Arc<Mutex<Session<BotState>>>,
     message: TwitchIrcUserMessage,
     args: Vec<String>,
-    context_mutex: CommandContext,
 ) -> CommandFutureResult {
     return Ok(Box::pin(async move {
         if !is_admin_or_mod(message.get_speaker(), message.get_target_channel())
@@ -43,11 +46,13 @@ pub fn shoutout(
 
         // TODO check if user is a mod or channel owner, to allow shoutout to trigger
 
-        let mut context = send_result::from(context_mutex.try_lock())?;
-        context.add_response_to_reply_with(send_message_from_user_format(
-            message.get_target_channel(),
-            shoutout_reply,
-        ));
+        session
+            .lock()
+            .await
+            .send_string(send_message_from_user_format(
+                message.get_target_channel(),
+                shoutout_reply,
+            ));
         Ok(())
     }));
 }

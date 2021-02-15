@@ -15,3 +15,4 @@ pub enum TwitchIrcMessageType {
 }
 
 unsafe impl Send for TwitchIrcMessageType {}
+unsafe impl Sync for TwitchIrcMessageType {}

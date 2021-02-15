@@ -1,8 +1,10 @@
+/*
 use crate::{
     irc_chat::{response_context::ResponseContext, traits::message_parser::MessageParser},
     user::user_properties::UserLogin,
 };
 
+use kubes_web_lib::web_socket::Session;
 use std::{
     sync::{Arc, Mutex},
     thread::sleep,
@@ -62,17 +64,13 @@ impl<TParser: MessageParser<TParser>> WebSocketSession<TParser> {
             on_start_function(&mut self_ref, &mut irc_listener);
         }
 
-        // Listen
+        // Begin Listening
         tokio::task::spawn(async move {
-            println!("start listen");
-
             let irc_listener = Arc::new(tokio::sync::Mutex::new(irc_listener));
 
             sleep(Duration::from_millis(2));
 
             loop {
-                println!("listen outer");
-
                 WebSocketSession::listen(self_arc.clone(), irc_listener.clone()).await;
             }
         });
@@ -160,9 +158,7 @@ impl<TParser: MessageParser<TParser>> WebSocketSession<TParser> {
             }
         }
 
-        let received_string: String;
-
-        match received_result_arc.clone().try_lock() {
+        let received_string = match received_result_arc.clone().try_lock() {
             Ok(received_result) => {
                 //println!("listen received message.");
 
@@ -181,13 +177,13 @@ impl<TParser: MessageParser<TParser>> WebSocketSession<TParser> {
 
                 let received_msg = received_msg_result.unwrap().clone();
                 let received_data = received_msg.take_payload();
-                received_string = String::from_utf8(received_data).unwrap();
+                String::from_utf8(received_data).unwrap()
             }
             Err(e) => {
                 red_ln!("Could not lock received result. ERRORL: {}", e);
                 return;
             }
-        }
+        };
 
         match self_arc.try_lock() {
             Ok(local_mutex) => {
@@ -288,3 +284,4 @@ impl<TParser: MessageParser<TParser>> WebSocketSession<TParser> {
         );
     }
 }
+*/

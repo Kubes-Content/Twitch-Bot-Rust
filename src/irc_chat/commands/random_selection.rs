@@ -1,16 +1,20 @@
 use crate::irc_chat::commands::{
-    send_message_from_user_format, ChatCommandKey, CommandContext, CommandFutureResult,
+    get_user_commands_including_alternates, send_message_from_user_format, ChatCommandKey,
+    CommandContext, CommandFutureResult,
 };
-use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
+//use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
 use crate::irc_chat::twitch_user_message::TwitchIrcUserMessage;
+use crate::BotState;
 use kubes_std_lib::random::random_in_range_once;
 use kubes_web_lib::error::send_result;
+use kubes_web_lib::web_socket::Session;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 pub fn random_selection(
-    parser: DefaultMessageParser,
+    session: Arc<Mutex<Session<BotState>>>,
     message: TwitchIrcUserMessage,
     args: Vec<String>,
-    context_mutex: CommandContext,
 ) -> CommandFutureResult {
     let reply_to_send = {
         let mut temp = String::new();
@@ -36,8 +40,8 @@ pub fn random_selection(
 
             if heads && tails {
                 let flipcoin_func = send_result::from_option(
-                    parser
-                        .user_commands
+                    get_user_commands_including_alternates()
+                        .0
                         .get(&ChatCommandKey::from("flipcoin".to_string())),
                 )?
                 .clone();
@@ -46,7 +50,7 @@ pub fn random_selection(
                     flipcoin_func
                         .lock()
                         .await
-                        .run(parser, message, vec![], context_mutex)
+                        .run(session, message, vec![])
                         .await?;
                     Ok(())
                 }));
@@ -61,9 +65,15 @@ pub fn random_selection(
         temp
     };
 
-    send_result::from(context_mutex.try_lock())?.add_response_to_reply_with(
-        send_message_from_user_format(message.get_target_channel(), reply_to_send),
-    );
+    Ok(Box::pin(async move {
+        session
+            .lock()
+            .await
+            .send_string(send_message_from_user_format(
+                message.get_target_channel(),
+                reply_to_send,
+            ));
 
-    Ok(Box::pin(async { Ok(()) }))
+        Ok(())
+    }))
 }

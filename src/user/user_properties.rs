@@ -1,15 +1,27 @@
+use crate::user::user_data::UserData;
 primitive_wrapper!(UserId, u32, "(User ID: {})");
 
 impl UserId {
     pub const LENGTH: usize = 8;
 }
 
-primitive_wrapper!(ChannelId, UserId, "(Channel: {})");
+primitive_wrapper!(ChannelId, UserId, "(ChannelId: {})");
 impl From<u32> for ChannelId {
     fn from(v: u32) -> Self {
         ChannelId {
             value: UserId { value: v },
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct ChannelData {
+    pub owner_data: UserData,
+}
+
+impl ChannelData {
+    pub fn get_id(&self) ->  ChannelId {
+        ChannelId{ value: self.owner_data.get_user_id() }
     }
 }
 

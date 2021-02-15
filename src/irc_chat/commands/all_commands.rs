@@ -1,41 +1,50 @@
-use crate::irc_chat::commands::{send_message_from_user_format, CommandFutureResult};
-use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
+use crate::irc_chat::commands::{
+    get_user_commands_including_alternates, send_message_from_user_format, CommandContext,
+    CommandFutureResult,
+};
+//use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
 use crate::irc_chat::response_context::ResponseContext;
 use crate::irc_chat::twitch_user_message::TwitchIrcUserMessage;
+use crate::BotState;
+use kubes_web_lib::web_socket::Session;
 use std::sync::Arc;
+use tokio::sync::Mutex;
 
-pub fn all_commands<'l>(
-    parser: DefaultMessageParser,
+pub fn all_commands(
+    session: Arc<Mutex<Session<BotState>>>,
     message: TwitchIrcUserMessage,
     args: Vec<String>,
-    context_mutex: Arc<tokio::sync::Mutex<ResponseContext<'l, DefaultMessageParser>>>,
 ) -> CommandFutureResult {
-    if args.len() > 0 {
-        println!("Should we be triggering '!Commands' when arguments are given?");
-    }
-
-    let commands = {
-        let mut temp = String::new();
-
-        for command in parser.user_commands.keys() {
-            temp = format!("{0}!{1} ", temp, command.get_value());
+    Ok(Box::pin(async move {
+        if args.len() > 0 {
+            println!("Should we be triggering '!Commands' when arguments are given?");
         }
 
-        // remove trailing whitespace
-        if temp.len() > 0 {
-            temp = temp[0..temp.len() - 1].to_string();
-        }
+        let commands = {
+            let mut temp = String::new();
+            let primary_native_commands = get_user_commands_including_alternates().0;
+            for command in primary_native_commands.keys() {
+                temp = format!("{0}!{1} ", temp, command.get_value());
+            }
 
-        temp
-    };
+            // remove trailing whitespace
+            if temp.len() > 0 {
+                temp = temp[0..temp.len() - 1].to_string();
+            }
 
-    println!("WARNING: All_commands is not including custom commands.");
+            temp
+        };
 
-    let mut context = context_mutex.try_lock().expect("Error!");
-    context.add_response_to_reply_with(send_message_from_user_format(
-        message.get_target_channel(),
-        format!("Commands: {}", commands),
-    ));
+        println!("WARNING: all_commands is not including custom commands.");
 
-    Ok(Box::pin(async { Ok(()) }))
+        session
+            .lock()
+            .await
+            .send_string(send_message_from_user_format(
+                message.get_target_channel(),
+                format!("Commands: {}", commands),
+            ));
+
+        Ok(())
+    }))
 }

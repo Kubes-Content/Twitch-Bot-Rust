@@ -20,6 +20,6 @@ reqwest = "*"
 serde = { version = "*", features = ["derive"] }
 serde_json = "*"
 socket2 = "*"
-tokio = { version = "0.2.25", features = ["full"] }
+tokio = { version = "0.2.25", features = ["full"] } #something requires this version of tokio // reqwest?
 url = "*"
 websocket = "*"

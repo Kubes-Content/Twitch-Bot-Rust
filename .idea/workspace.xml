@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
     <generated />
   </component>
@@ -16,10 +19,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/OAuth/Signature.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/OAuth/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/OAuth/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/credentials/client_id.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/credentials/client_id.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/channel_chatter_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/channel_chatter_data.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/add_custom_text_command.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/add_custom_text_command.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/all_commands.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/all_commands.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/blame.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/blame.rs" afterDir="false" />
@@ -32,22 +31,12 @@
       <change beforePath="$PROJECT_DIR$/src/irc_chat/commands/socials.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/commands/socials.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/default_irc_message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/default_irc_message_parser.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/default_message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/default_message_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/event/channel_points_event/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/parsers/pubsub/event/channel_points_event/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/response_context.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/response_context.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/traits/message_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/traits/message_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/irc_chat/twitch_message_type.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/twitch_message_type.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/irc_chat/web_socket_session.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/irc_chat/web_socket_session.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main_tick_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main_tick_data.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/oauth/has_oauth_signature.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/oauth/has_oauth_signature.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/oauth/token_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/oauth/token_data.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/save_data/default/custom_commands_save_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/save_data/default/custom_commands_save_data.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/save_data/default/user_rpg_stats.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/save_data/default/user_rpg_stats.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/send_error.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/user/oauth_token.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/oauth_token.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/user/user_data.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/user_data.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/user/user_properties.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/user/user_properties.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/web_requests/header.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/web_requests/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/web_requests/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -85,7 +74,7 @@
     <property name="cidr.known.project.marker" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../../RustProjects/druid_test_000" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
-    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Rust" />
+    <property name="settings.editor.selected.configurable" value="configurable.group.build" />
   </component>
   <component name="RunManager">
     <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" PASS_PARENT_ENVS_2="true">
@@ -111,7 +100,6 @@
   </component>
   <component name="RustProjectSettings">
     <option name="externalLinter" value="Clippy" />
-    <option name="newResolveEnabled" value="true" />
     <option name="runExternalLinterOnTheFly" value="true" />
     <option name="runRustfmtOnSave" value="true" />
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
@@ -136,6 +124,8 @@
       <workItem from="1612544085847" duration="1798000" />
       <workItem from="1612641074848" duration="28462000" />
       <workItem from="1612757120035" duration="14433000" />
+      <workItem from="1613082068493" duration="44708000" />
+      <workItem from="1613302031313" duration="37291000" />
     </task>
     <servers />
   </component>
