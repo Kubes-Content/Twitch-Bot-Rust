@@ -1,6 +1,4 @@
 use crate::irc_chat::commands::{send_message_from_user_format, CommandFutureResult};
-//use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
-use crate::irc_chat::response_context::ResponseContext;
 use crate::irc_chat::twitch_user_message::TwitchIrcUserMessage;
 use crate::BotState;
 use kubes_web_lib::web_socket::Session;

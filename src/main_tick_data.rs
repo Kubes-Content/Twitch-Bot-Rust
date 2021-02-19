@@ -1,5 +1,4 @@
-use crate::save_data::default::user_rpg_stats::UserRpgStats;
-use crate::user::user_properties::UserId;
+use crate::{save_data::default::user_rpg_stats::UserRpgStats, user::user_properties::UserId};
 use std::{collections::HashMap, error::Error};
 
 const TICKS_PER_EXP_POINT: u32 = 40;

@@ -1,25 +1,36 @@
-use std::io::{ErrorKind, Read};
-use std::net::TcpListener;
-use std::ops::Add;
+use std::{
+    error::Error,
+    io::{ErrorKind, Read},
+    net::TcpListener,
+    ops::Add,
+};
 
-use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::Client;
+use reqwest::{
+    header::{HeaderMap, HeaderValue},
+    Client,
+};
 
-use crate::credentials::access_scopes::get_all_scopes;
-use crate::credentials::bot_user_credentials::REDIRECT_URI;
-use crate::credentials::client_id::ClientId;
-use crate::credentials::client_secret::ClientSecret;
-use crate::oauth::has_oauth_signature::HasOauthSignature;
-use crate::oauth::token_data::TokenData;
-use crate::oauth::validation_token::ValidationToken;
-use crate::web_requests::twitch::{request_data, TwitchRequestResponse};
-use crate::web_requests::Header as WebRequestHeader;
-use crate::web_requests::WEB_REQUEST_ATTEMPTS;
+use crate::{
+    credentials::{
+        access_scopes::get_all_scopes, bot_user_credentials::REDIRECT_URI, client_id::ClientId,
+        client_secret::ClientSecret,
+    },
+    oauth::{
+        has_oauth_signature::HasOauthSignature, token_data::TokenData,
+        validation_token::ValidationToken,
+    },
+    web_requests::{
+        twitch::{request_data, TwitchRequestResponse},
+        Header as WebRequestHeader, WEB_REQUEST_ATTEMPTS,
+    },
+};
 use kubes_std_lib::logging::Logger;
-use kubes_web_lib::json::crawler::crawl_json;
-use kubes_web_lib::oauth::Signature;
-use kubes_web_lib::web_request::{is_html, is_json, request, RequestType};
-use std::error::Error;
+use kubes_web_lib::{
+    error::send_error,
+    json::crawler::crawl_json,
+    oauth::Signature,
+    web_request::{is_html, is_json, request, RequestType},
+};
 use url::Url;
 
 primitive_wrapper!(OauthToken, TokenData, "{}");
@@ -55,21 +66,14 @@ impl OauthToken {
 
         let url = Url::parse(url_authoritive_flow.as_str())?;
 
-        let authorization_response = match request(
+        let authorization_response = request(
             web_client,
             url,
             RequestType::Get,
             headers.clone(),
             WEB_REQUEST_ATTEMPTS,
         )
-        .await
-        {
-            Ok(r) => r,
-            Err(e) => {
-                println!("{}", e.to_string());
-                panic!("");
-            }
-        };
+        .await?;
 
         let authorization = {
             let mut authorization = String::new();
@@ -142,12 +146,14 @@ impl OauthToken {
 
         let token = {
             if !is_json(&token_response, logger)? {
-                panic!("EXPECTED JSON");
+                panic!("EXPECTED JSON!");
             }
 
             match crawl_json(token_response.text().await?.as_str()) {
                 Ok(token_json) => TokenData::from_json(token_json, client_id),
-                Err(e) => panic!("Failed to retrieve oauth token. Error: {}", e),
+                Err(e) => {
+                    panic!("Failed to retrieve oauth token. Error: {}", e)
+                }
             }
         };
 

@@ -1,5 +1,4 @@
 use crate::irc_chat::parsers::default_irc_message_parser::UserNativeCommandsMap;
-use crate::irc_chat::response_context::ResponseContext;
 use crate::irc_chat::twitch_user_message::TwitchIrcUserMessage;
 use crate::user::user_properties::UserLogin;
 use crate::BotState;
@@ -37,7 +36,7 @@ primitive_wrapper!(
     serialize
 );
 
-pub type CommandContext = ResponseContext;
+//pub type CommandContext = ResponseContext;
 
 pub type CommandFutureResult = Result<
     Pin<Box<(dyn Future<Output = Result<(), Box<dyn SendError>>> + Send)>>,

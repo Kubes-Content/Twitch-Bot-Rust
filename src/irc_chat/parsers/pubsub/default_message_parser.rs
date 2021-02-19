@@ -1,8 +1,5 @@
 use crate::{
-    irc_chat::{
-        parsers::pubsub::event::channel_points_event::ChannelPointsEvent,
-        response_context::ResponseContext, traits::message_parser::MessageParser,
-    },
+    irc_chat::parsers::pubsub::event::channel_points_event::ChannelPointsEvent,
     user::{
         oauth_token::OauthToken as UserOauthToken,
         user_properties::{ChannelId, UserId},

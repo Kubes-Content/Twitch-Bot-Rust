@@ -1,6 +1,6 @@
 use crate::irc_chat::commands::{
     is_built_in_command, send_message_from_user_format, ChatCommand, ChatCommandKey,
-    CommandContext, CommandFutureResult,
+    CommandFutureResult,
 };
 //use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
 use crate::irc_chat::commands::all_commands::all_commands;

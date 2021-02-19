@@ -1,6 +1,6 @@
 use crate::irc_chat::commands::{
     get_user_commands_including_alternates, send_message_from_user_format, ChatCommandKey,
-    CommandContext, CommandFutureResult,
+    CommandFutureResult,
 };
 //use crate::irc_chat::parsers::default_irc_message_parser::DefaultMessageParser;
 use crate::irc_chat::twitch_user_message::TwitchIrcUserMessage;

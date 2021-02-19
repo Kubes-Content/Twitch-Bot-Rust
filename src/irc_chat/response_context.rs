@@ -1,4 +1,4 @@
-use crate::user::user_data::UserData;
+/*use crate::user::user_data::UserData;
 
 #[derive(Clone)]
 pub struct ResponseContext {
@@ -9,3 +9,4 @@ impl ResponseContext {}
 
 unsafe impl Send for ResponseContext {}
 unsafe impl Sync for ResponseContext {}
+*/

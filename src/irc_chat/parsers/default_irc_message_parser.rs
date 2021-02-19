@@ -1,6 +1,4 @@
-use crate::irc_chat::commands::{
-    ChatCommand, ChatCommandKey, CommandContext, RereferenceableChatCommand,
-};
+use crate::irc_chat::commands::{ChatCommand, ChatCommandKey, RereferenceableChatCommand};
 use crate::user::oauth_token::OauthToken;
 use crate::user::user_data::UserData;
 use crate::user::user_properties::ChannelId;
@@ -10,8 +8,6 @@ use crate::{
             add_custom_text_command, all_commands, blame_random_user, enter_lurk, flipcoin,
             random_selection, send_message_from_user_format, shoutout, socials,
         },
-        response_context::ResponseContext,
-        traits::message_parser::MessageParser,
         twitch_message_type::TwitchIrcMessageType,
         twitch_user_message::TwitchIrcUserMessage,
     },
